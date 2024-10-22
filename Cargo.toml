@@ -1,0 +1,10 @@
+[package]
+name = "grep"
+version = "0.1.0"
+edition = "2021"
+
+# Dependencies
+[dependencies]
+clap = "2.33.3"
+walkdir = "2"
+colored = "2.0"
