@@ -1,9 +1,13 @@
 <!--StartFragment-->
 
 <div style="text-align: center; font-size: 24px;">
-## Distributed File Storage System in Rust
+Distributed File Storage System in Rust
+</div>
 
-Skyler Zhang - 1004715953  Xiao Hu - 1005684207
+<div style="text-align: center; font-size: 12px;">
+Skyler Zhang - 1004715953  
+Xiao Hu - 1005684207
+</div>
 
 <!--StartFragment-->
 
