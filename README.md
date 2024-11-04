@@ -1,10 +1,14 @@
+<!--StartFragment-->
+
 ECE1724 Project Proposal
 
 Skyler Zhang - 1004715953
 
 Xiao Hu - 1005684207
 
-**Motivation**
+<!--StartFragment-->
+
+### **Motivation**<a id="h.17u30qpcljpx"></a>
 
 A distributed file storage system is a network of multiple machines that store and manage data collaboratively. This architecture is commonly used in large-scale services like Amazon and Google where massive amounts of data need to be accessible. For example, Amazon uses Dynamo to support its global users with high availability so that their online ordering system is accessible at all times. Low latency is also critical—Amazon found that a 100ms delay could reduce sales by 1%, and Google saw that a 0.5-second lag in search results caused a 20% drop in traffic. To meet such demands, distributed file storage systems must prioritize scalability, availability, and low latency, allowing data to remain accessible and reliable even in the event of node crashes.
 
@@ -16,10 +20,7 @@ Last but not least, Rust’s asynchronous I/O enhances its suitability for distr
 
 Therefore, we propose implementing a distributed file storage system that leverages the strengths of Rust programming language. To achieve scalability, availability, safety, fault-tolerance, and user-friendliness, we propose several key features: a peer-to-peer (P2P) networking protocol to enable smooth scaling as new nodes join or leave without centralized coordination. We will also combine consistent hashing with replication, and file chunking and distribution to ensure high availability and fault tolerance. For data security, we will include user authentication and access control. Lastly, a user-friendly command-line interface will ensure smooth interaction with the system. This system will leverage Rust’s strengths to create a scalable and reliable solution for file data storage and management across multiple nodes. 
 
-\
-
-
-**Objective and Key Features**
+### **Objective and Key Features**<a id="h.17u30qpcljpx"></a>
 
 The key objective is to build a distributed file storage system in Rust that focuses on scalability, availability, safety, fault-tolerance and user-friendliness. 
 
@@ -59,7 +60,7 @@ For large files, we will divide them into smaller chunks and store them across m
 
 In a distributed file storage system, users expect a straightforward method to interact with the system effortlessly, regardless of the underlying network complexity. To meet this expectation, we will design a front-end command-line interface (CLI) that is both accessible and intuitive. This CLI will have essential file operations: connecting to a server, uploading, and downloading files across distributed nodes. By focusing on a simplified command-line utility with three core operations, we aim to make interactions seamless and user-friendly, ensuring that users can manage files smoothly in a distributed environment.
 
-**Tentative Plan**
+### **Tentative Plan**<a id="h.17u30qpcljpx"></a>
 
 To achieve our project objectives, our two-member team will strategically divide responsibilities, leverage Rust’s ecosystem, and maintain close collaboration to ensure progress. Our approach focuses on parallel development of the system components and seamless integration, ensuring all previously mentioned features are addressed effectively.
 
@@ -100,7 +101,7 @@ Core tasks:
 - Develop file chunking and distribution logic.
 
 
-### **Team Member 2: Security and Frontend**
+**Team Member 2: Security and Frontend**
 
 Responsibilities:
 
@@ -131,7 +132,7 @@ Core tasks:
 - Create monitoring tools for fault detection and data redistribution.
 
 
-### **Collaboration Strategy**
+**Collaboration Strategy**
 
 To ensure cohesive development, we will adopt the following strategies:
 
@@ -144,7 +145,7 @@ To ensure cohesive development, we will adopt the following strategies:
 - Continuous Integration: Set up a testing pipeline, ensuring the system remains robust and has no integration issues.
 
 
-### **Time Management**
+**Time Management**
 
 Given the short project duration, we will prioritize the core features while assign lower weight to other features:
 
@@ -153,8 +154,12 @@ Given the short project duration, we will prioritize the core features while ass
 - Other features: The CLI, including ease to use features. Fault tolerance, including health check and redistribution mechanisms.
 
 
-### **Testing and Quality Assurance**
+**Testing and Quality Assurance**
 
 In the final weeks, we will conduct integration testing to ensure all modules interact correctly. We will conduct stress tests to evaluate scalability and fault tolerance by simulating node failures and high-load conditions.
 
 In conclusion, by clearly dividing responsibilities and maintaining close collaboration, our two-member team is ready to develop a functional and reliable distributed file storage system in Rust within a few weeks. Leveraging Rust’s powerful libraries and focusing on core functionalities ensures that we deliver the final product timely and meet our dedicated project objectives efficiently and effectively.
+
+<!--EndFragment-->
+
+<!--EndFragment-->
