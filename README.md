@@ -1,10 +1,8 @@
 <!--StartFragment-->
 
-ECE1724 Project Proposal
+## Distributed File Storage System
 
-Skyler Zhang - 1004715953
-
-Xiao Hu - 1005684207
+Skyler Zhang - 1004715953  Xiao Hu - 1005684207
 
 <!--StartFragment-->
 
