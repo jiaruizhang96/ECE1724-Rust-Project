@@ -1,5 +1,5 @@
 <!--StartFragment-->
-###Distributed File Storage System in Rust
+## Distributed File Storage System in Rust
 
 Skyler Zhang - 1004715953  Xiao Hu - 1005684207
 <!--StartFragment-->
