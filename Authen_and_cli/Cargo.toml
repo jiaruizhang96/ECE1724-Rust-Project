@@ -1,0 +1,15 @@
+[package]
+name = "distributed_file_storage"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sqlx = { version = "0.6", features = ["runtime-tokio-native-tls", "postgres", "macros"] }
+bcrypt = "0.13"
+jsonwebtoken = "8"
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+clap = { version = "4.1", features = ["derive"] }
+dotenv = "0.15"
