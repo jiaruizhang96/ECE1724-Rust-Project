@@ -1,92 +1,77 @@
 mod node;
-use crate::node::CoordinatorServer;
-//mod store;
-//use store::Store;
-use libp2p::PeerId;
-use std::fs;
-use std::sync::{Arc, Mutex};
+mod behaviour;
+use async_std::io::{self, BufReader};
+use async_std::task;
+use futures::StreamExt;
+use libp2p::{
+    PeerId, Swarm,
+    kad::{Kademlia, record::{Key, Record, store::MemoryStore}, Quorum},
+    mdns::Mdns,
+    development_transport, identity,
+};
+use behaviour::Behaviour;
+use node::Node;
+use async_std::io::BufReadExt;
 
-/*
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut server = CoordinatorServer::new().await?;
-    server.add_client(PeerId::random(), "Client 1".to_string());
-    server.add_storage_node(PeerId::random(), "127.0.0.1:8080".to_string());
+    env_logger::init();
 
-    println!("Clients: {:?}", server.list_clients());
-    println!("Storage Nodes: {:?}", server.list_storage_nodes());
+    // Create a new node
+    let mut node = Node::new().await;
 
-    server.run().await
-}
+    // Start listening on a default address
+    node.start_listening("/ip4/0.0.0.0/tcp/0");
 
-fn main() {
-    // Create a new Store instance wrapped in Arc<Mutex> with a unique PeerId
-    let peer_id = PeerId::random();
-    let store = Arc::new(Mutex::new(Store::new(peer_id)));
+    println!("Node initialized. Enter commands (e.g., PUT <key> <value>, GET <key>, LISTEN <addr>):");
 
-    // Example file name and content
-    let file_name = "example.txt";
-    let file_content = "Hello, P2P world!".as_bytes().to_vec();
+    // Set up stdin for user input
+    let stdin = BufReader::new(io::stdin()).lines();
+    let mut fused_stdin = stdin.fuse(); // Make it a FusedStream
 
-    // Test storing a file
-    {
-        let mut store_guard = store.lock().unwrap(); // Acquire the lock for mutable access
-        match store_guard.store_file(file_name.to_string(), file_content.clone()) {
-            Ok(_) => println!("File '{}' stored successfully.", file_name),
-            Err(e) => println!("Failed to store file '{}': {}", file_name, e),
-        }
-    }
-
-    // Test retrieving the file
-    {
-        let store_guard = store.lock().unwrap(); // Acquire the lock for read access
-        match store_guard.get_file(file_name) {
-            Some(data) => {
-                // Convert the file data to a UTF-8 string for display
-                let content = String::from_utf8_lossy(&data);
-                println!("Retrieved file content: {}", content);
+    // Main event loop
+    loop {
+        futures::select! {
+            // Handle user input
+            line = fused_stdin.next() => {
+                match line {
+                    Some(Ok(input)) => node.handle_input(input).await,
+                    Some(Err(e)) => {
+                        eprintln!("Error reading input: {:?}", e);
+                        break;
+                    }
+                    None => {
+                        println!("Stdin closed. Exiting...");
+                        break;
+                    }
+                }
             }
-            None => println!("File '{}' not found.", file_name),
+
+            // Handle swarm events
+            event = node.swarm.next() => {
+                match event {
+                    Some(event) => match event {
+                        libp2p::swarm::SwarmEvent::NewListenAddr { address, .. } => {
+                            println!("Listening on: {:?}", address);
+                        }
+                        libp2p::swarm::SwarmEvent::ConnectionEstablished { peer_id, .. } => {
+                            println!("Connected to peer: {:?}", peer_id);
+                        }
+                        libp2p::swarm::SwarmEvent::ConnectionClosed { peer_id, cause, .. } => {
+                            println!("Disconnected from peer: {:?}, cause: {:?}", peer_id, cause);
+                        }
+                        libp2p::swarm::SwarmEvent::Behaviour(event) => {
+                            println!("Behaviour event: {:?}", event);
+                        }
+                        _ => {}
+                    },
+                    None => {
+                        println!("Swarm stopped. Exiting...");
+                        break;
+                    }
+                }
+            }
         }
-    }
-
-    // Test removing the file
-    {
-        let mut store_guard = store.lock().unwrap(); // Acquire the lock for mutable access
-        match store_guard.remove_file(file_name) {
-            Ok(_) => println!("File '{}' removed successfully.", file_name),
-            Err(e) => println!("Failed to remove file '{}': {}", file_name, e),
-        }
-    }
-}
-*/
-
-#[async_std::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut server = CoordinatorServer::new().await?;
-
-    let storage_node_id = PeerId::random();
-    server.add_storage_node(storage_node_id);
-
-    let file_name = "example.txt".to_string();
-    let file_content = b"Hello, distributed storage!".to_vec();
-
-    // Upload a file
-    match server.upload_file(&storage_node_id, file_name.clone(), file_content.clone()) {
-        Ok(_) => println!("File uploaded successfully."),
-        Err(e) => println!("Failed to upload file: {}", e),
-    }
-
-    // Download the file
-    match server.download_file(&file_name) {
-        Ok(data) => println!("Downloaded file content: {}", String::from_utf8_lossy(&data)),
-        Err(e) => println!("Failed to download file: {}", e),
-    }
-
-    // Remove the file
-    match server.remove_file(&file_name) {
-        Ok(_) => println!("File removed successfully."),
-        Err(e) => println!("Failed to remove file: {}", e),
     }
 
     Ok(())
