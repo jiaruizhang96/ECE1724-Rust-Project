@@ -48,6 +48,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
 
             // Handle swarm events
+            /*
+            swarm events include 1) network-level 2) behaviour-specific
+            1) network-level
+                nodes listen on a new address, to know where peers can connect to your node
+                connection closed, established
+            2) behaviour-specific
+                eg. Kademlia, mDNS, SwarmEvent::Behaviour(event)
+                1. When server call put_record or get_record to process client requests, 
+                    a Kademlia query is initiated internally.
+                2. During the query, the progress and results are wrapped as KademliaEvent variants.
+                3. These KademliaEvent variants are emitted as part of SwarmEvent::Behaviour.
+                4. in main.rs, the events are propagated as SwarmEvent::Behaviour and caught by this loop 
+            */
             event = node.swarm.next() => {
                 match event {
                     Some(event) => match event {
@@ -60,9 +73,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         libp2p::swarm::SwarmEvent::ConnectionClosed { peer_id, cause, .. } => {
                             println!("Disconnected from peer: {:?}, cause: {:?}", peer_id, cause);
                         }
-                        libp2p::swarm::SwarmEvent::Behaviour(event) => {
+                        /*libp2p::swarm::SwarmEvent::Behaviour(event) => {
                             println!("Behaviour event: {:?}", event);
-                        }
+                        }*/
                         _ => {}
                     },
                     None => {

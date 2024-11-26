@@ -8,7 +8,7 @@ use crate::behaviour::Behaviour;
 use async_std::{io, task};
 use futures::FutureExt;
 use async_std::io::BufReadExt;
-use libp2p::NetworkBehaviour;
+//use libp2p::NetworkBehaviour;
 use futures::StreamExt;
 use futures::Stream;
 pub struct Node {
@@ -33,12 +33,13 @@ impl Node {
         let store = MemoryStore::new(peer_id.clone());
         let kademlia = Kademlia::new(peer_id.clone(), store);
 
-        // Set up mDNS
+        // Set up mDNS： used to find nodes on the same network
         let mdns = Mdns::new(Default::default())
             .await
             .expect("Failed to initialize mDNS");
 
         // Combine behaviours
+        // in behaviour.rs, struct Behaviour has 2 attributes
         let behaviour = Behaviour { kademlia, mdns };
 
         // Create swarm
@@ -73,6 +74,12 @@ impl Node {
     /// Retrieve a value for a given key from the DHT
     pub fn get(&mut self, key: String) {
         let key = libp2p::kad::record::Key::new(&key);
+        // triggers Kademlia to initiate a GetRecord or PutRecord query
+        // see behaviour.rs, OutboundQueryCompleted 
+        // Quorum is an enum in the libp2p::kad module that 
+        // defines the minimum number of peers that must respond to a query for it to succeed.
+        // for now it's 1, only 1 peer needs to return the record for the query to succeed.
+        // in case we tested the system with less than 2 peers. 
         self.swarm
             .behaviour_mut()
             .kademlia
