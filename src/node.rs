@@ -63,11 +63,12 @@ impl Node {
             publisher: None,
             expires: None,
         };
+        let quorum = Quorum::N(NonZeroUsize::new(3).expect("Quorum value must be non-zero"));
 
         self.swarm
             .behaviour_mut()
             .kademlia
-            .put_record(record, Quorum::One)
+            .put_record(record.clone(), quorum)
             .expect("Failed to store record");
     }
 
