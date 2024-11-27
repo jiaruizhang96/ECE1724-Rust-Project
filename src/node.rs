@@ -5,12 +5,8 @@ use libp2p::{
     development_transport, identity,
 };
 use crate::behaviour::Behaviour;
-use async_std::{io, task};
-use futures::FutureExt;
-use async_std::io::BufReadExt;
-//use libp2p::NetworkBehaviour;
-use futures::StreamExt;
-use futures::Stream;
+use std::num::NonZeroUsize;
+
 pub struct Node {
     pub peer_id: PeerId,
     pub swarm: Swarm<Behaviour>, // The main swarm managing networking
@@ -40,7 +36,7 @@ impl Node {
 
         // Combine behaviours
         // in behaviour.rs, struct Behaviour has 2 attributes
-        let behaviour = Behaviour { kademlia, mdns };
+        let behaviour = Behaviour { kademlia, mdns};
 
         // Create swarm
         let swarm = Swarm::new(transport, behaviour, peer_id.clone());
@@ -87,20 +83,122 @@ impl Node {
             .get_record(&key, libp2p::kad::Quorum::One);
     }
 
+    /// Store a file in the DHT by splitting it into chunks and storing each chunk separately
+    pub fn put_file(&mut self, file_key: String, file_path: String) {
+        use std::fs;
+
+        // Read the file content
+        let file_content = match fs::read_to_string(&file_path) {
+            Ok(content) => content,
+            Err(e) => {
+                eprintln!("Failed to read file '{}': {:?}", file_path, e);
+                return;
+            }
+        };
+
+        // Split the file content into 500-character chunks
+        let chunks: Vec<String> = file_content
+            .chars()
+            .collect::<Vec<char>>()
+            .chunks(500)
+            .map(|chunk| chunk.iter().collect())
+            .collect();
+
+        let total_chunks = chunks.len();
+        
+
+        // Store each chunk in the DHT
+        for (counter, chunk) in chunks.iter().enumerate() {
+            let chunk_key = format!("{}_{}_{}", file_key, counter, total_chunks);
+            let record = Record {
+                key: Key::new(&chunk_key),
+                value: chunk.as_bytes().to_vec(),
+                publisher: None,
+                expires: None,
+            };
+
+            self.swarm
+                .behaviour_mut()
+                .kademlia
+                .put_record(record, libp2p::kad::Quorum::One)
+                .expect("Failed to store record");
+            println!(
+                "Stored chunk {} of {} for file '{}' under key '{}'.",
+                counter + 1,
+                total_chunks,
+                file_key,
+                chunk_key
+            );
+        }
+
+        println!(
+            "Stored file '{}' in {} chunks. Each chunk stored with keys '<file_key>_<chunk_number>_<total_chunks>'.",
+            file_path, total_chunks
+        );
+    let total_chunks_key = format!("{}_total", file_key);
+    let record = Record {
+        key: Key::new(&total_chunks_key),
+        value: total_chunks.to_string().as_bytes().to_vec(),
+        publisher: None,
+        expires: None,
+    };
+
+    self.swarm
+        .behaviour_mut()
+        .kademlia
+        .put_record(record, libp2p::kad::Quorum::One)
+        .expect("Failed to store total chunks metadata");
+
+    println!(
+        "Stored file '{}' in {} chunks. Each chunk stored with keys '<file_key>_<chunk_number>_<total_chunks>'. Total chunks metadata stored under key '{}'.",
+        file_path, total_chunks, total_chunks_key
+    );
+    }
+
+    /// Retrieve a file from the DHT by reconstructing it from its chunks
+    pub fn get_file(&mut self, file_key: String) {
+    
+        // Initiate retrieval 
+        let chunk_key = format!("{}_total", file_key,); 
+        let chunk_key = libp2p::kad::record::Key::new(&chunk_key);
+    
+        self.swarm
+            .behaviour_mut()
+            .kademlia
+            .get_record(&chunk_key, libp2p::kad::Quorum::One);
+    
+        println!(
+            "Initiated retrieval for file '{}'",
+            file_key
+        );
+    }
+    
     /// Handle user input commands
     pub async fn handle_input(&mut self, line: String) {
         let parts: Vec<&str> = line.trim().split_whitespace().collect();
         match parts.as_slice() {
-            // Command to store a key-value pair
-            ["PUT", key, value] => {
+            // Command to store a key-value pair (PUT -k)
+            ["PUT", "-k", key, value] => {
                 self.put(key.to_string(), value.as_bytes().to_vec());
                 println!("Stored record with key: {}", key);
             }
 
-            // Command to retrieve a value by key
-            ["GET", key] => {
+            // Command to store a text file (PUT -f)
+            ["PUT", "-f", unique_txt_file_key, txt_file_path] => {
+                self.put_file(unique_txt_file_key.to_string(), txt_file_path.to_string());
+                println!("Stored text file with unique key: {}", unique_txt_file_key);
+            }
+
+            // Command to retrieve a value by key (GET -k)
+            ["GET", "-k", key] => {
                 self.get(key.to_string());
                 println!("Searching for key: {}", key);
+            }
+
+            // Command to retrieve a text file (GET -f)
+            ["GET", "-f", unique_txt_file_key] => {
+                self.get_file(unique_txt_file_key.to_string());
+                println!("Searching for text file with unique key: {}", unique_txt_file_key);
             }
 
             // Command to start listening on a new address
@@ -119,13 +217,16 @@ impl Node {
             _ => {
                 println!(
                     "Unknown command. Use one of the following:\n\
-                    PUT <key> <value> - Store a key-value pair in the DHT\n\
-                    GET <key> - Retrieve a value from the DHT\n\
+                    PUT -k <key> <value> - Store a key-value pair in the DHT\n\
+                    PUT -f <unique_txt_file_key> <txt_file_path> - Store a text file in the DHT\n\
+                    GET -k <key> - Retrieve a value from the DHT\n\
+                    GET -f <unique_txt_file_key> - Retrieve a text file from the DHT\n\
                     LISTEN <address> - Start listening on a specified address\n\
                     EXIT - Exit the program"
                 );
             }
         }
     }
+
     
 }

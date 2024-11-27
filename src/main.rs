@@ -1,15 +1,7 @@
 mod node;
 mod behaviour;
 use async_std::io::{self, BufReader};
-use async_std::task;
 use futures::StreamExt;
-use libp2p::{
-    PeerId, Swarm,
-    kad::{Kademlia, record::{Key, Record, store::MemoryStore}, Quorum},
-    mdns::Mdns,
-    development_transport, identity,
-};
-use behaviour::Behaviour;
 use node::Node;
 use async_std::io::BufReadExt;
 
