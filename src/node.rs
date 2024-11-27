@@ -217,9 +217,7 @@ impl Node {
             _ => {
                 println!(
                     "Unknown command. Use one of the following:\n\
-                    PUT -k <key> <value> - Store a key-value pair in the DHT\n\
                     PUT -f <unique_txt_file_key> <txt_file_path> - Store a text file in the DHT\n\
-                    GET -k <key> - Retrieve a value from the DHT\n\
                     GET -f <unique_txt_file_key> - Retrieve a text file from the DHT\n\
                     LISTEN <address> - Start listening on a specified address\n\
                     EXIT - Exit the program"

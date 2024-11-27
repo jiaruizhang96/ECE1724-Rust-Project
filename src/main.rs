@@ -15,7 +15,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Start listening on a default address
     node.start_listening("/ip4/0.0.0.0/tcp/0");
 
-    println!("Node initialized. Enter commands (e.g., PUT <key> <value>, GET <key>, LISTEN <addr>):");
+    println!("Node initialized");
+    println!(
+        "Use one of the following:\n\
+        PUT -f <unique_txt_file_key> <txt_file_path> - Store a text file in the DHT\n\
+        GET -f <unique_txt_file_key> - Retrieve a text file from the DHT\n\
+        LISTEN <address> - Start listening on a specified address\n\
+        EXIT - Exit the program"
+    );
 
     // Set up stdin for user input
     let stdin = BufReader::new(io::stdin()).lines();

@@ -107,7 +107,7 @@ impl NetworkBehaviourEventProcess<KademliaEvent> for Behaviour {
                             // Write the current chunk to disk
                             let file_path = std::env::current_dir()
                                 .expect("Failed to get current directory")
-                                .join(format!("{}_retrieved.txt", file_key));
+                                .join(format!("{}.txt", file_key));
                             match std::fs::OpenOptions::new()
                                 .create(true)
                                 .append(true)
