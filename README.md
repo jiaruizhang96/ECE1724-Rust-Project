@@ -34,14 +34,14 @@ This project is a distributed key-value storage system written in Rust. It uses 
     ```bash
     PUT -f <unique_file_name> <absolute_path_to_file>
     ```
-    It is recommended to use a text file, eg. ``` unique_file_name.txt``` for testing purpose. 
+    It is recommended to use a text file, eg. ```<unique_file_name>.txt``` for testing purpose. 
     Each file stored will use its unique filename when retrieved.
 ### Step 3: Retrieve the file
 1. In one of the terminals, run:
     ```bash
     GET -f <unique_file_name> 
     ```
-    The retrieved file will be written to current directory with name ```unique_file_name.txt```
+    The retrieved file will be written to current directory with name ```<unique_file_name>.txt```
 ### Step 4: Exiting the Program
 1. To gracefully exit the program, run:
     ```bash
