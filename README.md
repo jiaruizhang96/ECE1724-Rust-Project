@@ -17,7 +17,7 @@ This project is a distributed key-value storage system written in Rust. It uses 
 1. Install [Rust](https://www.rust-lang.org/tools/install). 
 2. Clone this repository:
    ```bash
-   git clone <git@github.com:jiaruizhang96/ECE1724-Rust-Project.git>
+   git clone <git@github.com:your_github_username/ECE1724-Rust-Project.git>
    cd <ECE1724-Rust-Project>
    git checkout kv_storage
     ```
