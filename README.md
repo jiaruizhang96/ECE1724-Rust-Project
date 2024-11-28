@@ -6,9 +6,17 @@ This project is a distributed key-value storage system written in Rust. It uses 
 
 ## Features
 
-- **Distributed Text File Storage:** Store text files in the DHT across N servers.
-- **File Retrieval:** Retrieve files stored in the DHT by their unique file names.
-- **Peer-to-Peer Communication:** Nodes communicate using a libp2p-based network.
+1. **Node Discovery and Peer-to-Peer Networking**
+   - Implements node discovery using the **mDNS protocol**, which automatically discovers peers in the local network and integrates them into the Kademlia Distributed Hash Table (DHT).
+   - The Kademlia DHT enables efficient key-value operations, such as storing and retrieving records, and logs the success or failure of these operations for debugging and monitoring.
+
+2. **File Chunking and Distribution**
+   - Implements file storage by splitting large files into smaller chunks, which are individually stored in the DHT.
+   - Metadata is stored to track the total number of chunks and their sequence. Chunks are retrieved in order, ensuring proper reassembly into the original file.
+
+3. **Data Redundancy for Reliability**
+   - Ensures reliability by maintaining data redundancy through quorum-based storage. Each record is replicated across multiple nodes in the network using a quorum size of `3` to tolerate potential node failures.
+
 
 ---
 
