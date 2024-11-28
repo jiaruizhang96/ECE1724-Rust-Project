@@ -1,43 +1,49 @@
+# Distributed Key-Value Storage System
 
-## Modules and Their Responsibilities
+This project is a distributed key-value storage system written in Rust. It uses the libp2p library for peer-to-peer networking and a distributed hash table (DHT) for storing and retrieving file data.
 
-### 1. `main.rs`
-- The main entry point of the application that initializes and runs the modules for the project.
+---
 
-### 2. `network/`
-- **`mod.rs`**: Declares the submodules for the network functionality.
-- **`discovery.rs`**: Handles node discovery and the P2P setup using `libp2p` and Kademlia DHT.
-- **`communication.rs`**: Contains functions for sending and receiving messages between nodes.
-- **`handling.rs`**: Processes incoming network requests and routes them accordingly.
+## Features
 
-### 3. `hashing/`
-- **`mod.rs`**: Declares the submodules for hashing.
-- **`consistent.rs`**: Implements consistent hashing and node management functions for data distribution.
+- **Distributed Text File Storage:** Store text files in the DHT across N servers.
+- **File Retrieval:** Retrieve files stored in the DHT by their unique file names.
+- **Peer-to-Peer Communication:** Nodes communicate using a libp2p-based network.
 
-### 4. `storage/`
-- **`mod.rs`**: Declares the submodules for storage.
-- **`chunking.rs`**: Contains logic for chunking files into smaller pieces and distributing them across nodes.
-- **`replication.rs`**: Manages data replication for fault tolerance and redundancy.
-- **`retrieval.rs`**: Implements data retrieval and reconstruction from distributed chunks.
+---
 
-### 5. `client/`
-- **`mod.rs`**: Declares the submodules for client.
-- **`client.rs`**: Contains logic for client-side communication.
+## Prerequisites
 
-### 6. `utils.rs`
-- Contains utility functions for common operations, such as logging network activity.
-
-## Features To Implement
-- **Peer-to-Peer Networking**: Establishes a decentralized network using `libp2p` with Kademlia DHT for efficient node discovery and data routing.
-- **Consistent Hashing**: Distributes data evenly across nodes, supporting scalability and load balancing.
-- **Data Storage and Replication**: Ensures data redundancy by replicating data chunks across multiple nodes for enhanced fault tolerance.
-- **File Chunking and Distribution**: Splits large files into smaller chunks and distributes them to nodes, supporting parallel processing and data recovery.
-
-
-### Running the Project
-1. Clone this repository.
-2. Run `cargo build` to compile the project.
-
-### Running the Project
-- Start the server by running `cargo run server`.
-- Start the client by running `cargo run client`.
+1. Install [Rust](https://www.rust-lang.org/tools/install). 
+2. Clone this repository:
+   ```bash
+   git clone <git@github.com:jiaruizhang96/ECE1724-Rust-Project.git>
+   cd <ECE1724-Rust-Project>
+   git checkout kv_storage
+    ```
+## Running the Project
+### Step 1: Start Nodes
+1. Open four or more terminal windows.
+2. Run the program in each terminal to start nodes:
+   ```bash
+   cargo run
+   ```
+   Each node will initialize and start listening on a randomly assigned port.
+### Step 2: Store a File
+1. In one of the terminals, run:
+    ```bash
+    PUT -f <unique_file_name> <absolute_path_to_file>
+    ```
+    It is recommended to use a text file for testing purpose. 
+    Each file stored will use its unique filename when retrieved.
+### Step 3: Retrieve the file
+1. In one of the terminals, run:
+    ```bash
+    GET -f <unique_file_name> 
+    ```
+    The retrieved file will be written to current directory with name ```unique_file_name.txt```
+### Step 4: Exiting the Program
+1. To gracefully exit the program, run:
+    ```bash
+    EXIT
+    ```
