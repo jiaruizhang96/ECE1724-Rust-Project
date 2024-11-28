@@ -23,7 +23,7 @@ This project is a distributed key-value storage system written in Rust. It uses 
     ```
 ## Running the Project
 ### Step 1: Start Nodes
-1. Open four or more terminal windows.
+1. Open four or more terminal windows. Each data is stored with three replicas, at least four servers must be running in the distributed system.
 2. Run the program in each terminal to start nodes:
    ```bash
    cargo run
