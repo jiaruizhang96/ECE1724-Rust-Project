@@ -1,50 +1,105 @@
 mod node;
 mod behaviour;
+use clap::{Arg, Command};
 use async_std::io::{self, BufReader};
+use async_std::prelude::*;
 use futures::StreamExt;
 use node::Node;
-use async_std::io::BufReadExt;
+use std::io::{Write};
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
+    // Parse command-line arguments using Clap
+    let matches = Command::new("ECEC1724 - Distributed File Storage System")
+        .version("1.0")
+        .about("A Distributed Hash Table (DHT) Storage System")
+        .arg(
+            Arg::new("listen")
+                .short('l')
+                .long("listen")
+                .value_name("ADDRESS")
+                .help("Start listening on a specific address")
+                .default_value("/ip4/0.0.0.0/tcp/0")
+        )
+        .get_matches();
+
     // Create a new node
     let mut node = Node::new().await;
 
-    // Start listening on a default address
-    node.start_listening("/ip4/0.0.0.0/tcp/0");
+    // Start listening on the specified or default address
+    let listen_addr = matches.get_one::<String>("listen").unwrap();
+    node.start_listening(listen_addr);
 
-    println!("Node initialized");
-    println!(
-        "Use one of the following:\n\
-        PUT -f <unique_txt_file_key> <txt_file_path> - Store a text file in the DHT\n\
-        GET -f <unique_txt_file_key> - Retrieve a text file from the DHT\n\
-        LISTEN <address> - Start listening on a specified address\n\
-        EXIT - Exit the program"
-    );
+    println!("Distributed Hash Table (DHT) Storage System");
+    println!("Node initialized with PeerId: {}", node.peer_id);
+    println!("Type 'help' for available commands");
 
-    // Set up stdin for user input
-    let stdin = BufReader::new(io::stdin()).lines();
-    let mut fused_stdin = stdin.fuse(); // Make it a FusedStream
+    // Set up async stdin reader and fuse it
+    let mut stdin = BufReader::new(io::stdin()).lines().fuse();
 
     // Main event loop
     loop {
+        print!("p2p> ");
+        std::io::stdout().flush()?; // make sure the prompt is displayed immediately
+
         futures::select! {
             // Handle user input
-            line = fused_stdin.next() => {
+            line = stdin.next() => {
                 match line {
-                    Some(Ok(input)) => node.handle_input(input).await,
+                    Some(Ok(input)) => {
+                        // Trim and split input
+                        let parts: Vec<&str> = input.trim().split_whitespace().collect();
+                        
+                        // Process command
+                        match parts.as_slice() {
+                            ["help"] => {
+                                println!("Available commands:");
+                                println!("  put <key> <value>     - Store a key-value pair");
+                                println!("  put -f <key> <file>   - Store a file");
+                                println!("  get <key>             - Retrieve a key-value pair");
+                                println!("  get -f <key>          - Retrieve a file");
+                                println!("  listen <address>      - Start listening on an address");
+                                println!("  help                  - Print this help message");
+                                println!("  exit                  - Exit the program gracefully");
+                            }
+                            ["exit"] => break,
+                            ["put", key, value] => {
+                                node.put(key.to_string(), value.as_bytes().to_vec());
+                                println!("Stored key-value pair: {} = {}", key, value);
+                            },
+                            ["put", "-f", key, file_path] => {
+                                node.put_file(key.to_string(), file_path.to_string());
+                                println!("Stored text file '{}' with unique key: {}", file_path, key);
+                            },
+                            ["get", key] => {
+                                node.get(key.to_string());
+                                println!("Searching for key: {}", key);
+                            },
+                            ["get", "-f", key] => {
+                                node.get_file(key.to_string());
+                                println!("Searching for text file with unique key: {}", key);
+                            },
+                            ["listen", addr] => {
+                                node.start_listening(addr);
+                                println!("Listening on: {}", addr);
+                            },
+                            _ => {
+                                println!("Invalid command. Type 'help' for available commands.");
+                            }
+                        }
+                    },
                     Some(Err(e)) => {
                         eprintln!("Error reading input: {:?}", e);
                         break;
-                    }
+                    },
                     None => {
                         println!("Stdin closed. Exiting...");
                         break;
                     }
                 }
-            }
+            },
 
             // Handle swarm events
             /*
@@ -72,9 +127,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         libp2p::swarm::SwarmEvent::ConnectionClosed { peer_id, cause, .. } => {
                             println!("Disconnected from peer: {:?}, cause: {:?}", peer_id, cause);
                         }
-                        /*libp2p::swarm::SwarmEvent::Behaviour(event) => {
-                            println!("Behaviour event: {:?}", event);
-                        }*/
                         _ => {}
                     },
                     None => {
@@ -86,5 +138,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    println!("Exiting the File Storage System");
     Ok(())
 }
