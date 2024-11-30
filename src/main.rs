@@ -5,6 +5,7 @@ use async_std::io::{self, BufReader};
 use async_std::prelude::*;
 use futures::StreamExt;
 use node::Node;
+use hex;
 use std::io::{Write};
 
 #[async_std::main]
@@ -14,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Parse command-line arguments using Clap
     let matches = Command::new("ECEC1724 - Distributed File Storage System")
         .version("1.0")
-        .about("A Distributed Hash Table (DHT) Storage System")
+        .about("A Distributed Hash Table (DHT) Storage System with Authentication")
         .arg(
             Arg::new("listen")
                 .short('l')
@@ -56,35 +57,140 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         match parts.as_slice() {
                             ["help"] => {
                                 println!("Available commands:");
-                                println!("  put <key> <value>     - Store a key-value pair");
-                                println!("  put -f <key> <file>   - Store a file");
-                                println!("  get <key>             - Retrieve a key-value pair");
-                                println!("  get -f <key>          - Retrieve a file");
-                                println!("  listen <address>      - Start listening on an address");
-                                println!("  help                  - Print this help message");
-                                println!("  exit                  - Exit the program gracefully");
+                                println!("  register <username> [--admin]   - Register a new user");
+                                println!("  put <key> <value> <pk> <sig>    - Store a key-value pair");
+                                println!("  put -f <key> <file> <pk> <sig>  - Store a file");
+                                println!("  get <key> <pk> <sig>            - Retrieve a key-value pair");
+                                println!("  get -f <key> <pk> <sig>         - Retrieve a file");
+                                println!("  listen <address>                - Start listening on an address");
+                                println!("  help                            - Print this help message");
+                                println!("  exit                            - Exit the program gracefully");
                             }
-                            ["exit"] => break,
-                            ["put", key, value] => {
-                                node.put(key.to_string(), value.as_bytes().to_vec());
-                                println!("Stored key-value pair: {} = {}", key, value);
+                            ["register", username, flag] if *flag == "--admin" => {
+                                match node.user_manager.register_user(username, true) {
+                                    Ok(public_key) => {
+                                        println!("Registered admin user: {}", username);
+                                        println!("Public Key (hex): {}", hex::encode(&public_key));
+                                    }
+                                    Err(e) => println!("Registration failed: {}", e),
+                                }
+                            }
+                            ["register", username] => {
+                                match node.user_manager.register_user(username, false) {
+                                    Ok(public_key) => {
+                                        println!("Registered user: {}", username);
+                                        println!("Public Key (hex): {}", hex::encode(&public_key));
+                                    }
+                                    Err(e) => println!("Registration failed: {}", e),
+                                }
+                            }
+                            ["put", key, value, public_key, signature] => {
+                                let pk_bytes = match hex::decode(public_key) {
+                                    Ok(pk) => pk,
+                                    Err(_) => {
+                                        println!("Invalid public key format");
+                                        continue;
+                                    }
+                                };
+                                let sig_bytes = match hex::decode(signature) {
+                                    Ok(sig) => sig,
+                                    Err(_) => {
+                                        println!("Invalid signature format");
+                                        continue;
+                                    }
+                                };
+                                
+                                if node.put(key.to_string(), value.as_bytes().to_vec(), pk_bytes, sig_bytes) {
+                                    println!("Successfully stored key-value pair");
+                                } else {
+                                    println!("Operation failed");
+                                }
                             },
-                            ["put", "-f", key, file_path] => {
-                                node.put_file(key.to_string(), file_path.to_string());
-                                println!("Stored text file '{}' with unique key: {}", file_path, key);
+                            ["get", key, public_key, signature] => {
+                                let pk_bytes = match hex::decode(public_key) {
+                                    Ok(pk) => pk,
+                                    Err(_) => {
+                                        println!("Invalid public key format");
+                                        continue;
+                                    }
+                                };
+                                let sig_bytes = match hex::decode(signature) {
+                                    Ok(sig) => sig,
+                                    Err(_) => {
+                                        println!("Invalid signature format");
+                                        continue;
+                                    }
+                                };
+                                
+                                if node.get(key.to_string(), pk_bytes, sig_bytes) {
+                                    println!("Retrieving key-value pair");
+                                } else {
+                                    println!("Retrieval failed");
+                                }
                             },
-                            ["get", key] => {
-                                node.get(key.to_string());
-                                println!("Searching for key: {}", key);
+                            ["put", "-f", key, file_path, public_key, signature] => {
+                                let pk_bytes = match hex::decode(public_key) {
+                                    Ok(pk) => pk,
+                                    Err(_) => {
+                                        println!("Invalid public key format");
+                                        continue;
+                                    }
+                                };
+                                let sig_bytes = match hex::decode(signature) {
+                                    Ok(sig) => sig,
+                                    Err(_) => {
+                                        println!("Invalid signature format");
+                                        continue;
+                                    }
+                                };
+                                
+                                if node.put_file(key.to_string(), file_path.to_string(), pk_bytes, sig_bytes) {
+                                    println!("Successfully stored file: {}", file_path);
+                                } else {
+                                    println!("File storage operation failed");
+                                }
                             },
-                            ["get", "-f", key] => {
-                                node.get_file(key.to_string());
-                                println!("Searching for text file with unique key: {}", key);
+                            ["get", "-f", key, public_key, signature] => {
+                                let pk_bytes = match hex::decode(public_key) {
+                                    Ok(pk) => pk,
+                                    Err(_) => {
+                                        println!("Invalid public key format");
+                                        continue;
+                                    }
+                                };
+                                let sig_bytes = match hex::decode(signature) {
+                                    Ok(sig) => sig,
+                                    Err(_) => {
+                                        println!("Invalid signature format");
+                                        continue;
+                                    }
+                                };
+                                
+                                if node.get_file(key.to_string(), pk_bytes, sig_bytes) {
+                                    println!("Retrieving file with key: {}", key);
+                                } else {
+                                    println!("File retrieval failed");
+                                }
+                            },
+                            ["permission", key, public_key] => {
+                                let pk_bytes = match hex::decode(public_key) {
+                                    Ok(pk) => pk,
+                                    Err(_) => {
+                                        println!("Invalid public key format");
+                                        continue;
+                                    }
+                                };
+                                
+                                match node.user_manager.add_key_permission(key, &pk_bytes) {
+                                    Ok(_) => println!("Permission granted for key: {}", key),
+                                    Err(e) => println!("Failed to grant permission: {}", e),
+                                }
                             },
                             ["listen", addr] => {
                                 node.start_listening(addr);
                                 println!("Listening on: {}", addr);
                             },
+                            ["exit"] => break,
                             _ => {
                                 println!("Invalid command. Type 'help' for available commands.");
                             }

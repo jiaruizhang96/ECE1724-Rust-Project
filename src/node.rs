@@ -6,10 +6,13 @@ use libp2p::{
 };
 use crate::behaviour::Behaviour;
 use std::num::NonZeroUsize;
+mod auth;
+use crate::node::auth::UserManager;
 
 pub struct Node {
     pub peer_id: PeerId,
     pub swarm: Swarm<Behaviour>, // The main swarm managing networking
+    pub user_manager: auth::UserManager, //TODO: is this replicated to other nodes?
 }
 
 impl Node {
@@ -41,7 +44,10 @@ impl Node {
         // Create swarm
         let swarm = Swarm::new(transport, behaviour, peer_id.clone());
 
-        Node { peer_id, swarm }
+        // Initialize UserManager
+        let user_manager = UserManager::new();
+
+        Node { peer_id, swarm, user_manager }
     }
     /// Start listening on a specified address
     pub fn start_listening(&mut self, addr: &str) {
@@ -52,7 +58,19 @@ impl Node {
     }
     
     /// Store a key-value pair in the DHT
-    pub fn put(&mut self, key: String, value: Vec<u8>) {
+    pub fn put(&mut self, key: String, value: Vec<u8>, public_key: Vec<u8>, signature: Vec<u8>) -> bool {
+        // Authentication check
+        if !self.user_manager.authenticate(&public_key, &signature, key.as_bytes()) {
+            eprintln!("Authentication failed for key: {}", key);
+            return false;
+        }
+
+        // Permission check
+        if !self.user_manager.check_key_permission(&key, &public_key) {
+            eprintln!("Permission denied for key: {}", key);
+            return false;
+        }
+
         let record = Record {
             key: Key::new(&key),
             value,
@@ -61,15 +79,32 @@ impl Node {
         };
         let quorum = Quorum::N(NonZeroUsize::new(3).expect("Quorum value must be non-zero"));
 
-        self.swarm
+        match self.swarm
             .behaviour_mut()
             .kademlia
-            .put_record(record.clone(), quorum)
-            .expect("Failed to store record");
+            .put_record(record.clone(), quorum) {
+            Ok(_) => true,
+            Err(_) => {
+                eprintln!("Failed to store record");
+                false
+            }
+        }
     }
 
     /// Retrieve a value for a given key from the DHT
-    pub fn get(&mut self, key: String) {
+    pub fn get(&mut self, key: String, public_key: Vec<u8>, signature: Vec<u8>) -> bool {
+        // Authentication check
+        if !self.user_manager.authenticate(&public_key, &signature, key.as_bytes()) {
+            eprintln!("Authentication failed for key: {}", key);
+            return false;
+        }
+
+        // Permission check
+        if !self.user_manager.check_key_permission(&key, &public_key) {
+            eprintln!("Permission denied for key: {}", key);
+            return false;
+        }
+
         let key = libp2p::kad::record::Key::new(&key);
         // triggers Kademlia to initiate a GetRecord or PutRecord query
         // see behaviour.rs, OutboundQueryCompleted 
@@ -81,18 +116,32 @@ impl Node {
             .behaviour_mut()
             .kademlia
             .get_record(&key, libp2p::kad::Quorum::One);
+
+        true
     }
 
     /// Store a file in the DHT by splitting it into chunks and storing each chunk separately
-    pub fn put_file(&mut self, file_key: String, file_path: String) {
+    pub fn put_file(&mut self, file_key: String, file_path: String, public_key: Vec<u8>, signature: Vec<u8>) -> bool {
+        // Authentication check
+        if !self.user_manager.authenticate(&public_key, &signature, file_key.as_bytes()) {
+            eprintln!("Authentication failed for file: {}", file_key);
+            return false;
+        }
+
+        // Permission check
+        if !self.user_manager.check_key_permission(&file_key, &public_key) {
+            eprintln!("Permission denied for file: {}", file_key);
+            return false;
+        }
+
+        // Existing file storage logic remains the same
         use std::fs;
 
-        // Read the file content
         let file_content = match fs::read_to_string(&file_path) {
             Ok(content) => content,
             Err(e) => {
                 eprintln!("Failed to read file '{}': {:?}", file_path, e);
-                return;
+                return false;
             }
         };
 
@@ -135,41 +184,55 @@ impl Node {
             "Stored file '{}' in {} chunks. Each chunk stored with keys '<file_key>_<chunk_number>_<total_chunks>'.",
             file_path, total_chunks
         );
-    let total_chunks_key = format!("{}_total", file_key);
-    let record = Record {
-        key: Key::new(&total_chunks_key),
-        value: total_chunks.to_string().as_bytes().to_vec(),
-        publisher: None,
-        expires: None,
-    };
+        let total_chunks_key = format!("{}_total", file_key);
+        let record = Record {
+            key: Key::new(&total_chunks_key),
+            value: total_chunks.to_string().as_bytes().to_vec(),
+            publisher: None,
+            expires: None,
+        };
 
-    self.swarm
-        .behaviour_mut()
-        .kademlia
-        .put_record(record, libp2p::kad::Quorum::One)
-        .expect("Failed to store total chunks metadata");
+        self.swarm
+            .behaviour_mut()
+            .kademlia
+            .put_record(record, libp2p::kad::Quorum::One)
+            .expect("Failed to store total chunks metadata");
 
-    println!(
-        "Stored file '{}' in {} chunks. Each chunk stored with keys '<file_key>_<chunk_number>_<total_chunks>'. Total chunks metadata stored under key '{}'.",
-        file_path, total_chunks, total_chunks_key
-    );
+        println!(
+            "Stored file '{}' in {} chunks. Each chunk stored with keys '<file_key>_<chunk_number>_<total_chunks>'. Total chunks metadata stored under key '{}'.",
+            file_path, total_chunks, total_chunks_key
+        );
+
+        true
     }
 
     /// Retrieve a file from the DHT by reconstructing it from its chunks
-    pub fn get_file(&mut self, file_key: String) {
-    
-        // Initiate retrieval 
-        let chunk_key = format!("{}_total", file_key,); 
+    pub fn get_file(&mut self, file_key: String, public_key: Vec<u8>, signature: Vec<u8>) -> bool {
+        // Authentication check
+        if !self.user_manager.authenticate(&public_key, &signature, file_key.as_bytes()) {
+            eprintln!("Authentication failed for file retrieval: {}", file_key);
+            return false;
+        }
+
+        // Permission check
+        if !self.user_manager.check_key_permission(&file_key, &public_key) {
+            eprintln!("Permission denied for file retrieval: {}", file_key);
+            return false;
+        }
+
+        let chunk_key = format!("{}_total", file_key);
         let chunk_key = libp2p::kad::record::Key::new(&chunk_key);
     
         self.swarm
             .behaviour_mut()
             .kademlia
             .get_record(&chunk_key, libp2p::kad::Quorum::One);
-    
+
         println!(
             "Initiated retrieval for file '{}'",
             file_key
         );
+        
+        true
     }
 }

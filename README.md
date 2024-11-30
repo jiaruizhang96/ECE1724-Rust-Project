@@ -34,7 +34,7 @@ This project is a distributed key-value storage system written in Rust. It uses 
 1. Open four or more terminal windows. Each data is stored with three replicas, at least four servers must be running in the distributed system.
 2. Run the program in each terminal to start nodes:
    ```bash
-   cargo run
+   cargo run --bin kv_storage
    ```
    Each node will initialize and start listening on a randomly assigned port.
 ### Step 2: Store a File
@@ -55,3 +55,18 @@ This project is a distributed key-value storage system written in Rust. It uses 
     ```bash
     EXIT
     ```
+
+# for authentication:
+first register
+then get signature through:
+cargo run --bin client -- --username <user1> --target_key <The_file_key_to_sign>
+then get access permission through:
+permission <file_key> <the_users_public_key>
+then can call get or put through:
+put/get -f <file_key> <the_users_public_key> <the_signature_of_this_user_on_the_file_key>
+
+on another node:
+need to get permission for this file_key and user again through:
+permission <file_key> <the_users_public_key>
+and then can call get through:
+get -f <file_key> <the_users_public_key> <the_signature_of_this_user_on_the_file_key>
