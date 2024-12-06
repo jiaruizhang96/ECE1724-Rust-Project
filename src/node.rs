@@ -12,7 +12,7 @@ use crate::node::auth::UserManager;
 pub struct Node {
     pub peer_id: PeerId,
     pub swarm: Swarm<Behaviour>, // The main swarm managing networking
-    pub user_manager: auth::UserManager, //TODO: is this replicated to other nodes?
+    pub user_manager: auth::UserManager,
 }
 
 impl Node {
@@ -134,7 +134,6 @@ impl Node {
             return false;
         }
 
-        // Existing file storage logic remains the same
         use std::fs;
 
         let file_content = match fs::read_to_string(&file_path) {

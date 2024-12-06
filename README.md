@@ -17,7 +17,8 @@ This project is a distributed key-value storage system written in Rust. It uses 
 3. **Data Redundancy for Reliability**
    - Ensures reliability by maintaining data redundancy through quorum-based storage. Each record is replicated across multiple nodes in the network using a quorum size of `3` to tolerate potential node failures.
 
-
+4. **Authentication and Access control**
+   - Our system uses ed25519 digital signatures for authentication. Each registed user generates a unique public-private key pair. The UserManager implements access control through an Access Control List (ACL) that maps keys to authorized user public keys, enabling permission at a file level.
 ---
 
 ## Prerequisites
@@ -56,7 +57,9 @@ This project is a distributed key-value storage system written in Rust. It uses 
     EXIT
     ```
 
-# for authentication:
+
+
+# The work flow with authentication:
 first register the user to get public-private key pair
 register <username>
 
@@ -71,10 +74,8 @@ put -f <file_key> <file_path> <users_public_key> <the_signature_of_this_user_on_
 get -f <file_key> <users_public_key> <the_signature_of_this_user_on_the_file_key>
 
 on another node:
-need to get permission for this file_key if the user is different through:
-permission <file_key> <users_public_key>
-and then can call get through:
-get -f <file_key> <users_public_key> <the_signature_of_this_user_on_the_file_key>
-
-TODO: implement the up key to use previous command and understand how the UserManager resides on Node and if it will
-be propagated to other Nodes
+need to get permission for this file_key for another user on this node:
+permission <file_key> <users_public_key_2>
+and then can call sign and get through:
+sign <username_2> <file_key>
+get -f <file_key> <users_public_key_2> <the_signature_of_this_user_on_the_file_key>

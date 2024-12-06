@@ -40,10 +40,9 @@ impl UserManager {
             return Err("User already exists".to_string());
         }
 
-        // Generate a secure location to store the private key
+        // generate a secure location to store the private key
         let private_key_path = format!("./private_keys/{}.private_key", username);
         
-        // Store the private key securely (in this case, in a file)
         let private_key = keypair.secret.to_bytes().to_vec();
         self.store_private_key(&private_key_path, &private_key)?;
 
@@ -83,7 +82,6 @@ impl UserManager {
 
     pub fn add_key_permission(&self, key: &str, authorized_public_key: &[u8]) -> Result<(), String> {
         let hex_key = hex::encode(key);
-        //TODO: probably don't need to hex encode again here
         let hex_public_key = hex::encode(authorized_public_key);
 
         let mut acl = self.acl.lock().map_err(|_| "Lock poisoned")?;
