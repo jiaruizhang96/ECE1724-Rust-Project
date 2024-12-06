@@ -3,8 +3,7 @@ use rand::rngs::OsRng;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::fs::File;
-use std::io::{Write, Read};
-use std::path::Path;
+use std::io::{Write};
 
 #[derive(Clone)]
 pub struct UserManager {
@@ -12,6 +11,7 @@ pub struct UserManager {
     acl: Arc<Mutex<HashMap<String, Vec<String>>>>, // Key -> Authorized user public keys. Tell which users are allowed to acces which key
 }
 
+#[allow(dead_code)]
 #[derive(Clone)]
 pub struct UserCredentials {
     username: String,
@@ -106,13 +106,13 @@ impl UserManager {
             .unwrap_or(false)
     }
 
-    pub fn is_admin(&self, public_key: &[u8]) -> bool {
-        let hex_public_key = hex::encode(public_key);
+    // pub fn is_admin(&self, public_key: &[u8]) -> bool {
+    //     let hex_public_key = hex::encode(public_key);
         
-        let users = self.users.lock().unwrap();
+    //     let users = self.users.lock().unwrap();
         
-        users.get(&hex_public_key)
-            .map(|user| user.is_admin)
-            .unwrap_or(false)
-    }
+    //     users.get(&hex_public_key)
+    //         .map(|user| user.is_admin)
+    //         .unwrap_or(false)
+    // }
 }

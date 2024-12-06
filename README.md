@@ -57,19 +57,24 @@ This project is a distributed key-value storage system written in Rust. It uses 
     ```
 
 # for authentication:
-first register
-then get signature through:
-cargo run --bin client -- --username <user1> --target_key <The_file_key_to_sign>
-then get access permission through:
-permission <file_key> <the_users_public_key>
+first register the user to get public-private key pair
+register <username>
+
+then get access permission for this user on a file through:
+permission <file_key> <users_public_key>
+
+then get create a signature through:
+sign <username> <file_key>
+
 then can call get or put through:
-put/get -f <file_key> <the_users_public_key> <the_signature_of_this_user_on_the_file_key>
+put -f <file_key> <file_path> <users_public_key> <the_signature_of_this_user_on_the_file_key>
+get -f <file_key> <users_public_key> <the_signature_of_this_user_on_the_file_key>
 
 on another node:
-need to get permission for this file_key and user again through:
-permission <file_key> <the_users_public_key>
+need to get permission for this file_key if the user is different through:
+permission <file_key> <users_public_key>
 and then can call get through:
-get -f <file_key> <the_users_public_key> <the_signature_of_this_user_on_the_file_key>
+get -f <file_key> <users_public_key> <the_signature_of_this_user_on_the_file_key>
 
 TODO: implement the up key to use previous command and understand how the UserManager resides on Node and if it will
 be propagated to other Nodes

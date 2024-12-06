@@ -1,5 +1,6 @@
 mod node;
 mod behaviour;
+mod client;
 use clap::{Arg, Command};
 use async_std::io::{self, BufReader};
 use async_std::prelude::*;
@@ -57,14 +58,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         match parts.as_slice() {
                             ["help"] => {
                                 println!("Available commands:");
-                                println!("  register <username> [--admin]   - Register a new user");
-                                println!("  put <key> <value> <pk> <sig>    - Store a key-value pair");
-                                println!("  put -f <key> <file> <pk> <sig>  - Store a file");
-                                println!("  get <key> <pk> <sig>            - Retrieve a key-value pair");
-                                println!("  get -f <key> <pk> <sig>         - Retrieve a file");
-                                println!("  listen <address>                - Start listening on an address");
-                                println!("  help                            - Print this help message");
-                                println!("  exit                            - Exit the program gracefully");
+                                println!("  register <username> [--admin]        - Register a new user");
+                                println!("  put <key> <value> <pk> <sig>         - Store a key-value pair");
+                                println!("  put -f <key> <file_path> <pk> <sig>  - Store a file");
+                                println!("  get <key> <pk> <sig>                 - Retrieve a key-value pair");
+                                println!("  get -f <key> <pk> <sig>              - Retrieve a file");
+                                println!("  sign <username> <key>                - Sign a file");
+                                println!("  permission <key> <pk>                - Permit access to a file");
+                                println!("  listen <address>                     - Start listening on an address");
+                                println!("  help                                 - Print this help message");
+                                println!("  exit                                 - Exit the program gracefully");
                             }
                             ["register", username, flag] if *flag == "--admin" => {
                                 match node.user_manager.register_user(username, true) {
@@ -184,6 +187,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 match node.user_manager.add_key_permission(key, &pk_bytes) {
                                     Ok(_) => println!("Permission granted for key: {}", key),
                                     Err(e) => println!("Failed to grant permission: {}", e),
+                                }
+                            },
+                            ["sign", username, message] => {
+                                match client::sign_message(username, message) {
+                                    Ok((public_key, signature, _)) => {
+                                        println!("Public Key (hex): {}", hex::encode(&public_key));
+                                        println!("Signature (hex): {}", hex::encode(&signature));
+                                    }
+                                    Err(e) => {
+                                        println!("Signing failed: {}", e);
+                                    }
                                 }
                             },
                             ["listen", addr] => {
