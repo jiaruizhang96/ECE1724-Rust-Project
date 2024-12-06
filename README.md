@@ -70,3 +70,6 @@ need to get permission for this file_key and user again through:
 permission <file_key> <the_users_public_key>
 and then can call get through:
 get -f <file_key> <the_users_public_key> <the_signature_of_this_user_on_the_file_key>
+
+TODO: implement the up key to use previous command and understand how the UserManager resides on Node and if it will
+be propagated to other Nodes

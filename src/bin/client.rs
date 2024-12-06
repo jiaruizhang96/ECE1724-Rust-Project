@@ -2,14 +2,24 @@ use ed25519_dalek::{Keypair, Signature, SecretKey, PublicKey};
 use ed25519_dalek::Signer;
 use clap::{Arg, Command};
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{Read};
+use std::io::ErrorKind;
 
 fn load_private_key(username: &str) -> Result<Vec<u8>, String> {
     let private_key_path = format!("./private_keys/{}.private_key", username);
 
-    let mut file = File::open(private_key_path).map_err(|e| e.to_string())?;
     let mut private_key = Vec::new();
-    file.read_to_end(&mut private_key).map_err(|e| e.to_string())?;
+    match File::open(private_key_path) {
+        Ok(mut file) => {
+            file.read_to_end(&mut private_key).map_err(|e| e.to_string())?;
+        },
+        Err(ref e) if e.kind() == ErrorKind::NotFound => {
+            return Err("This client is not registered".to_string());
+        },
+        Err(e) => {
+            return Err(e.to_string());
+        }
+    }
 
     Ok(private_key)
 }
