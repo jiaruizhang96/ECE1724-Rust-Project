@@ -1,160 +1,108 @@
 <!--StartFragment-->
 ## Distributed File Storage System in Rust
 
-Skyler Zhang - 1004715953  Xiao Hu - 1005684207
+Skyler Zhang - 1004715953 -  Xiao Hu - 1005684207 - hx.hu@mail.utoronto.ca
 <!--StartFragment-->
 
-### **Motivation**<a id="h.17u30qpcljpx"></a>
+### **Motivation and Project Background**<a id="h.17u30qpcljpx"></a>
+**Distributed File Storage Systems: Context and Challenges**
+In the contemporary technological world, data storage and management have become increasingly complex, demanding solutions that can handle massive amounts of information with reliability, scalability, and performance. Distributed file storage systems is a critical technological approach to these challenges, allowing for organizations and services to manage data across multiple connected nodes efficiently.
 
-A distributed file storage system is a network of multiple machines that store and manage data collaboratively. This architecture is commonly used in large-scale services like Amazon and Google where massive amounts of data need to be accessible. For example, Amazon uses Dynamo to support its global users with high availability so that their online ordering system is accessible at all times. Low latency is also critical—Amazon found that a 100ms delay could reduce sales by 1%, and Google saw that a 0.5-second lag in search results caused a 20% drop in traffic. To meet such demands, distributed file storage systems must prioritize scalability, availability, and low latency, allowing data to remain accessible and reliable even in the event of node crashes.
+The motivation for developing a distributed file storage system stems from real-world industry experiences that demonstrated the importance of robust, scalable, and performant data management infrastructure. Companies like Amazon and Google have demonstrated that the performance of distributed systems directly impacts user experience and, consequently, business outcomes. For instance, Amazon's research showed that even a 100-millisecond delay in page load time could potentially reduce sales by 1%, while Google discovered that a 0.5-second lag in search results could lead to a 20% drop in user traffic.
 
-Rust is an ideal language for building distributed systems due to its focus on predictable performance, memory safety, and concurrency management. First, Rust’s lack of garbage collection eliminates runtime interruptions which are critical for latency-sensitive distributed systems. Unlike Java, which uses garbage collection that can trigger at any time, causing unexpected events that halt execution to reclaim memory. C and C++ rely on manual memory management, prone to errors like memory leaks.  Rust’s compile-time memory safety ensures consistently high performance without compromising reliability. 
+These findings illustrate the importance of designing distributed systems that prioritize three fundamental characteristics: scalability, availability, and low latency. Modern storage services require infrastructure that can expand to accommodate growing data demands, maintain continuous operation even when individual nodes fail, and provide rapid access to data.
 
-Second, Rust’s borrow checker ensures memory safety by setting clear rules for how data can be accessed and modified. Rust allows only one mutable or multiple immutable references to data at all times which prevents data race and unexpected change to data. Other programming languages like C and C++ lack built-in safety controls which makes them vulnerable to issues like buffer overflows. 
+**Technological Landscape**
+Traditional centralized storage systems face significant limitations in meeting these requirements. As data volumes grow exponentially and user expectations for rapid access increase, centralized architectures become the bottlenecks. Centralized systems create single points of failure, are challenging to scale horizontally, and often fail to maintain consistent performance under increased load.
+Distributed file storage systems emerge as a handy solution to these challenges. By distributing data and computational overheads across multiple nodes, these systems can:
+*Achieve horizontal scalability
+*Improve overall system resilience
+*Provide more consistent performance with increased load
 
-Last but not least, Rust’s asynchronous I/O enhances its suitability for distributed systems by allowing multiple tasks to run simultaneously without blocking operations, a key requirement in distributed environments. Unlike Java, C, and C++, which use synchronous I/O by default, Rust’s asynchronous I/O enables concurrent task handling, improving system latency and responsiveness.
+However, implementing such systems is non-trivial. Developers must address complex technical challenges, including:
+*Efficient data distribution and partitioning
+*Maintaining data consistency across nodes
+*Ensuring secure and controlled data access
+*Managing network communication and node discovery
+*Handling concurrent read and write operations
 
-Therefore, we propose implementing a distributed file storage system that leverages the strengths of Rust programming language. To achieve scalability, availability, safety, fault-tolerance, and user-friendliness, we propose several key features: a peer-to-peer (P2P) networking protocol to enable smooth scaling as new nodes join or leave without centralized coordination. We will also combine consistent hashing with replication, and file chunking and distribution to ensure high availability and fault tolerance. For data security, we will include user authentication and access control. Lastly, a user-friendly command-line interface will ensure smooth interaction with the system. This system will leverage Rust’s strengths to create a scalable and reliable solution for file data storage and management across multiple nodes. 
+**Rust as a Strategic Language Choice**
+The selection of Rust as the implementation language for this distributed file storage system was strategic. Rust offers unique characteristics that fits perfectly with the requirements of distributed systems development:
+**Performance**
+Unlike Java, which uses garbage collection that can trigger at any time, causing unexpected events that halt execution to reclaim memory. Rust provides compile-time memory safety without compromising performance. The absence of a garbage collection mechanism ensures high performance, a critical requirement for distributed systems.
+
+**Memory Safety**
+Rust's borrow checker is a revolutionary approach to memory management. By enforcing strict rules about data access at compile-time, Rust eliminates entire classes of memory-related errors which is common in languages like C and C++. This includes preventing data races, buffer overflows, and null or dangling pointer dereferencing. The borrow checker ensures that at any given time, a piece of data can have either:
+*One mutable reference
+*Multiple immutable references
+This approach guarantees memory safety without runtime overhead, a significant advantage in systems requiring efficient resource utilization.
+
+**Concurrency and Asynchronous I/O**
+Modern distributed systems often require concurrency operations. Rust's asynchronous I/O capabilities enable efficient, non-blocking task execution. Unlike traditional synchronous I/O models, Rust allows multiple tasks to run simultaneously without blocking operations, which is crucial for maintaining high system throughput. Moreover, the language's ownership and borrowing rules extend to concurrent programming, providing compile-time guarantees that prevent common dreaded multithreading runtime bugs such as race conditions and deadlocks.
+
+Based on these discussions, we propose implementing a distributed file storage system that leverages the strengths of Rust programming language. To achieve scalability, availability, safety, and user-friendliness, we proposed several key features: a peer-to-peer (P2P) networking protocol to enable smooth scaling as new nodes join or leave without centralized coordination. We also leveraged file chunking and distribution to ensure high availability and fault tolerance. For data security, we included user authentication and access control. Lastly, a user-friendly command-line interface ensures smooth interaction with the system. Our system leverages Rust’s strengths to create a scalable and reliable solution for file data storage and management across multiple nodes.
+
 
 ### **Objective and Key Features**<a id="h.17u30qpcljpx"></a>
 
-The key objective is to build a distributed file storage system in Rust that focuses on scalability, availability, safety, fault-tolerance and user-friendliness. 
+**Comprehensive System Design Objectives**
+When developing a distributed file storage system, it's essential to establish clear and well defined objectives that address the various challenges in the distributed system design. For our project, we identified five primary objectives fundamental to our system: Scalability, Availability, Safety, Fault Tolerance, and User-Friendliness. Each of these objectives tackles a critical aspect of the distributed systems, ensuring that the final product is robust, reliable, and user-friendly.
 
-**Objective1: Scalability**
+**Objective1, Scalability: Building a Flexible and Adaptive Infrastructure**
 
-Scalability emphasizes the ability of our system to handle increased workload, such as adding nodes, without compromising performance. Scalability is crucial as it allows a distributed system to meet growing demands. As user numbers and data volumes increase, a scalable system can expand its capacity without significant reconfiguration and overhead, facilitating a better user experience.
+Scalability refers to the system's ability to handle growth, in the number of users, the volume of data, or the complexity of operations, without sacrificing performance or efficiency. In our distributed file storage system, scalability is achieved through a peer-to-peer (P2P) network architecture that allows the system to expand horizontally. This means that as demand increases, new nodes can be added to the network, enhancing the system's capacity without overwhelming existing resources.
 
-To achieve scalability, we will implement a **Peer-to-Peer network**. This feature allows for horizontal scaling, where nodes can be easily added or removed. Each node in a P2P network acts both as a client and a server, sharing resources and responsibilities.
+**Key Features for Scalability:**
+*Decentralized Node Discovery Using Kademlia Distributed Hash Table (DHT): To ensure that our system can efficiently locate and communicate with any node within the network, we implemented the Kademlia DHT. This decentralized approach eliminates the need for a central directory, which allows nodes to find each other based on a structured but flexible hashing mechanism. This not only speeds up the discovery process but also improves the system's ability to scale when more nodes join the network.
+*Dynamic Node Adding and Removal: One of the challenges in distributed systems is managing the dynamic nature of node participation. Our system allows nodes to join or leave the network without requiring a central authority to manage these changes. This mechanism ensures that the system remains adaptable, making it capable of adjusting to node availability without disrupting overall operations.
+*Minimal Overhead: As nodes add in and leave, the network needs to reorganize itself to maintain functionality. We've designed our system to handle these reconfigurations with minimal overhead, ensuring that the process is efficient and does not significantly impact the system's responsiveness or data access speeds.
+*Efficient Resource Sharing Across Nodes: Scalability is not just about adding more nodes. It's also about making the best use of current resources. Our system facilitates efficient sharing of storage space, processing power, and bandwidth across all nodes. This approach maximizes the system's overall capacity and ensures that resources are utilized effectively, even when the network grows.
 
-We will use Rust's libp2p crate to build the P2P architecture. libp2p provides protocols for node discovery, communication, and data transfer. Nodes can discover each other using decentralized mechanisms like the Kademlia Distributed Hash Table (DHT). This decentralized architecture allows the system to scale horizontally without a centralized bottleneck.
 
-**Objective2: Availability**
+**Objective2, Availability: Ensuring Continuous Operation and Data Accessibility**
 
-Availability is the system's ability to keep operational to users at all times. In distributed systems, high availability ensures that services continue to operate, even if some nodes fail. High availability is the key to providing reliable services. It builds user trust and prevents disruptions that could lead to data losses or inaccessibility. 
+For a distributed system, high availability is crucial. It means that the system remains functional and accessible to users even when an individual node fails or network disrupts. For our distributed file storage system, achieving high availability involves eliminating the single points of failure and implementing robust redundancy mechanisms to ensure that data remains accessible at all times.
 
-The **Peer-to-Peer network** also ensures high availability. By distributing services across multiple nodes and eliminating a central server, the system eliminates the single point of failure. If some nodes fail, others can continue to provide services, ensuring continuous operation.
+**Key features for Availability:**
+*Distributed Data Replication: To prevent data loss and ensure accessibility, our system replicates data across multiple nodes. By maintaining several copies of each file, the system can quickly retrieve data from a different node if the primary storage location fails. This redundancy is key to maintaining continuous access to files, regardless of individual node failures.
+*Automatic Data Redistribution When Node Fails: When a node fails or becomes unreachable, the system automatically redistributes its data to other active nodes. This process ensures that data remains available even during unexpected node failure, maintaining the system's overall reliability and user trust.
+*Health Monitoring and Node Failure Detection: Continuous health monitoring is essential for identifying and responding to node failures promptly. Our system includes mechanisms to check the status of each node, detecting failures quickly and triggering the data redistribution to maintain availability.
 
-Using libp2p, we will create a network where nodes communicate to each other and share responsibilities. We will implement data redundancy by replicating file chunks across multiple nodes. Health checks and monitoring mechanisms will be implemented to detect node failures, and the system will redistribute data to maintain redundancy and availability.
 
-**Objective3: Safety**
+**Objective3, Safety: Ensuring Robust Security and Access Control**
 
-Safety refers to the ability of protecting the system's data and resources from unauthorized access. It enforces that only authorized users can access certain parts of the system. Ensuring safety is critical to prevent confidential data leakage, unauthorized data manipulation, and other security threats, thus achieving data integrity and confidentiality. This will boost user trust in the system's security and data privacy.
+Safety in a distributed file storage system involves the protection of both system resources and the data stored within it from unauthorized access and malicious activities. Our objective is to create a secure environment where data integrity and confidentiality are enforced, and access is controlled based on the users’ permissions.
 
-To ensure safety, we need robust **User Authentication and Access Control** mechanisms. This feature verifies user identities and enforces permissions, allowing only authorized access to data and system functions.
+**Key Features for Security:**
+*User Authentication Using Cryptographic Key Pairs: To verify the identity of users that try to access the system, we implemented cryptographic key pairs. Each user is assigned a unique pair of keys—one public and one private—that are used to authenticate their identity securely. This method ensures that only authorized users who have their keys registered in the system can access the system and the data.
+*Role Based Access Control: Managing who has access to what data within the system is essential for maintaining security. Our implementation uses role based access control to define roles with specific permissions, ensuring that users can only perform actions and access data that their role permits. This approach to control access helps prevent unauthorized access.
+*Credential Storage: Protecting user credentials is essential to protect the system from being compromised. We implement secure storage mechanisms for all credentials, using encryption and other measures to prevent unauthorized access or tampering with the user credential data.
+*Signature Based Request Verification: To ensure that all requests to the system are legitimate and have not been tampered with third parties or attackers, we use signature based request verification. Each request is signed with the user's private key, and the system verifies the signature using the corresponding public key stored securely. This process adds an additional layer of security, enforcing the authenticity and integrity of all operations that come from any users.
+*Fined Grained Permission Management for Data Keys: Beyond user roles, our system allows for fine grained control over who can access what specific data. The data is stored in our system typically through key value pairs, that the user refers to a specific piece of data through a unique key value assigned to that data upon the initial storage process. Permissions are managed at the level of individual data keys, which enables fine grained control over who can view, modify, or share what particular files. This level of detail in permission management enhances data security and ensures that sensitive information is only accessible to authorized users.
 
-We'll use Rust's SQLx crate to securely store user credentials and permissions in the database. Passwords will be hashed with algorithms like bcrypt, ensuring they remain protected even if the database is compromised. For authentication, we'll verify user credentials during login and issue JSON Web Tokens using the jsonwebtoken crate for session management. Access control will be implemented using role-based access control (RBAC), associating permissions with user roles. This ensures users can only perform actions and access data permitted by their roles.
 
-**Objective 4: Fault Tolerance**
+**Objective 4, User-Friendliness: Facilitating Intuitive System Interaction**
 
-Fault tolerance is a key objective in distributed systems to ensure that data remains accessible, even in the event of node failures. To achieve this, our system uses consistent hashing with replication. Both data items and nodes are assigned positions on a circular hash ring using a hash function such as MD5. Each data item is assigned to the first node encountered clockwise on the ring. When a new node joins the network, only the data closest to the new node on the ring needs to be moved to the new node. This makes sure minimal effort is required when nodes join or leave the distributed network. 
+While the underlying architecture of our distributed file storage system is complex, we aimed at making the user experience as straightforward and intuitive as possible. We have designed a user-friendly interface that allows users to interact with the system without needing to understand the implementation details behind its operation.
 
-Moreover, in order to make sure the data is accessible during node crashes, instead of storing each data item on just one node, the system will store it on 3 nodes. A file will be stored on the node it hashes to and then replicated on the next two nodes in a clockwise direction on the hash ring. If one node fails, the data is still accessible from its replicas on other nodes. Replication also helps with load distribution since requests for the same data can be served by multiple nodes, balancing the network load. 
+**Key Features for User-Friendliness:**
+*Simple Commands for File Upload and Download: Users can easily upload and download files using straightforward commands. This simplicity lowers the barrier for our system, allowing users of all kinds of backgrounds to manage their files without frustration in using our system.
+*Clear User Registration and Authentication Process: Registering for the system and authenticating are processes that embeds within the system, without needs for external software. Users can quickly create accounts and log in securely, with clear instructions that guide them through each step. This clarity ensures that users can start using the system without unnecessary complications.
+*Complete Packaging of Distributed File Storage Handling: Although the system operates based on a distributed network, these complexities are hidden from the user completely. Whether a file is being stored across multiple nodes or being retrieved from various locations, the user experiences the same interaction with the system, without awaring the underlying processes that implemented this process.
+*Immediate Feedback on Operations: Users receive real-time feedback on their actions, such as confirmations when a file is successfully uploaded or notifications if an error occurs. This immediate feedback can improve user confidence in the system’s functioning and allows them to understand the outcome of their interactions without waiting.
+ 
+**Technical Implementation For the Features**
+Transforming our objectives into a functional distributed file storage system required thoughtful design and technical implementation. Below are some of the key technical achievements for our system.
+*Utilization of Libp2p for Robust P2P Networking: To facilitate reliable and efficient peer-to-peer communication, we leveraged libp2p, a crate designed for decentralized applications. Libp2p handles the complexities of network communication, allowing our system to focus on higher-level functionalities without worrying about low-level networking issues.
+*Integration of Kademlia DHT for Efficient Node and Data Discovery: As mentioned earlier, Kademlia DHT plays a crucial role in our system's scalability achievements. By integrating Kademlia, we ensure that nodes can quickly and efficiently discover each other and locate data within the network. This integration is seamless and allows for dynamic adjustments as the network grows or changes.
+*Implementation of mDNS for Local Network Peer Detection: To enhance the system's ability to discover peers within the same local network, we implemented multicast DNS (mDNS). This technology allows nodes to identify and connect with nearby peers without requiring external discovery services, which improves the system's efficiency and reduces latency for local data transfers.
+*User Management with Ed25519 Cryptographic Signatures: Security is paramount in our system, and we achieve this through the use of Ed25519 cryptographic signatures. These signatures provide strong authentication and ensure that all user actions are verifiable. By using Ed25519, we balance security with performance, allowing for fast and reliable cryptographic operations without significant overhead.
+*Flexible File Storage Through Chunk-Based Distribution: Our system stores files by breaking them down into smaller chunks, which are then distributed across multiple nodes. This chunk-based approach not only enhances fault tolerance by ensuring that no single node holds an entire file but also improves scalability. Users can upload and download files, while the system manages the distribution and retrieval of chunks behind the scenes.
+*Access Control and Authentication Mechanisms: Beyond user authentication, our system incorporates detailed access control mechanisms that govern how users interact with data. By implementing role-based permissions and granular access controls for individual files, our system ensures that data is only accessible to those with the appropriate permissions.
 
-For large files, we will divide them into smaller chunks and store them across multiple nodes. This allows parallel file handling and improves fault tolerance, as missing chunks can be recovered from replicated copies on other nodes. Together, consistent hashing with replication and file chunking allow for efficient data distribution, scalability, and fault tolerance. 
+In summary, by addressing each of these objectives and implementing the corresponding features, our distributed file storage system serves as a sound solution to data management challenges. The objectives and key features of our distributed file storage system are crafted to address the challenges of modern data management. By focusing on scalability, availability, safety, fault tolerance, and user-friendliness, we have built a system that is not only technically sound but also accessible for users.
+Through comprehensive planning and execution, we have transformed our initial objectives into a functional and sophisticated system. This distributed file storage solution exemplifies how careful consideration of design principles and technical implementation can result in a product that meets and exceeds the demands of today's data-driven world.
 
-**Objective 5: User-friendliness**
-
-In a distributed file storage system, users expect a straightforward method to interact with the system effortlessly, regardless of the underlying network complexity. To meet this expectation, we will design a front-end command-line interface (CLI) that is both accessible and intuitive. This CLI will have essential file operations: connecting to a server, uploading, and downloading files across distributed nodes. By focusing on a simplified command-line utility with three core operations, we aim to make interactions seamless and user-friendly, ensuring that users can manage files smoothly in a distributed environment.
-
-### **Tentative Plan**<a id="h.17u30qpcljpx"></a>
-
-To achieve our project objectives, our two-member team will strategically divide responsibilities, leverage Rust’s ecosystem, and maintain close collaboration to ensure progress. Our approach focuses on parallel development of the system components and seamless integration, ensuring all previously mentioned features are addressed effectively.
-
-The responsibilities for each team member is defined as follows:
-
-**Team Member 1: Backend and Networking**
-
-Responsibilities:
-
-1. Peer-to-Peer Networking:
-
-   - Utilize Rust’s libp2p crate to establish the P2P architecture. This includes setting up node discovery with the Kademlia Distributed Hash Table (DHT) and managing protocols for node communication.
-
-   - Implement consistent hashing to distribute data evenly across nodes and ensure the network can scale horizontally. 
-
-2. Data Storage and Replication:
-
-   - Develop the hashing mechanism (e.g. MD5) to map data to nodes on the hash ring.
-
-   - Ensure data redundancy by replicating each file chunk across several nodes. This enhances fault tolerance and maintains data availability even if nodes fail.
-
-   - Implement algorithms to divide large files into smaller chunks, facilitating efficient storage and parallel processing.
-
-3. File Chunking and Distribution:
-
-   - Divide files into chunks and store each chunk across different nodes
-
-   - Ensure each chunk is replicated 2 times so that it can be recovered even if the primary replica fails. 
-
-   - Implement file distribution hashmap for efficient chunk location tracking and accessing. 
-
-Core tasks:
-
-- Set up the P2P network using _libp2p_.
-
-- Implement consistent hashing and data replication mechanisms.
-
-- Develop file chunking and distribution logic.
-
-
-**Team Member 2: Security and Frontend**
-
-Responsibilities:
-
-1. Security and Authentication:
-
-   - Use Rust’s _SQLx_ crate to securely store user credentials. Implement password hashing with bcrypt to protect user data.
-
-   - Develop role-based access control (RBAC) using the jsonwebtoken crate to manage JSON Web Tokens, ensuring only authorized users can access or modify data.
-
-2. Command-Line Interface (CLI):
-
-   - Create an intuitive CLI for users to connect to the network, upload, and download files. Ensure commands are straightforward and provide clear feedback.
-
-   - Connect the CLI with backend services, handling network communication, data requests, and security protocols effectively.
-
-3. Fault Tolerance:
-
-   - Develop health checks to monitor node status and detect failures promptly.
-
-   - Automate the redistribution of data when nodes fail or new nodes join.
-
-Core tasks:
-
-- Implement user authentication and RBAC.
-
-- Develop the CLI for user interactions.
-
-- Create monitoring tools for fault detection and data redistribution.
-
-
-**Collaboration Strategy**
-
-To ensure cohesive development, we will adopt the following strategies:
-
-- Weekly updates: Hold brief weekly meetings to discuss progress, address challenges, and synchronize efforts.
-
-- Version Control: Use Git for code management, enabling seamless collaboration, and version tracking.
-
-- Shared Documentation: Maintain documentation outlining design architecture and usage guidelines to facilitate knowledge sharing.
-
-- Continuous Integration: Set up a testing pipeline, ensuring the system remains robust and has no integration issues.
-
-
-**Time Management**
-
-Given the short project duration, we will prioritize the core features while assign lower weight to other features:
-
-- Core features: The P2P network, including consistent hashing, and basic data storage and replication. The SQLx database setup and interaction. The security mechanisms, including authentication and access control. 
-
-- Other features: The CLI, including ease to use features. Fault tolerance, including health check and redistribution mechanisms.
-
-
-**Testing and Quality Assurance**
-
-In the final weeks, we will conduct integration testing to ensure all modules interact correctly. We will conduct stress tests to evaluate scalability and fault tolerance by simulating node failures and high-load conditions.
-
-In conclusion, by clearly dividing responsibilities and maintaining close collaboration, our two-member team is ready to develop a functional and reliable distributed file storage system in Rust within a few weeks. Leveraging Rust’s powerful libraries and focusing on core functionalities ensures that we deliver the final product timely and meet our dedicated project objectives efficiently and effectively.
 
 <!--EndFragment-->
 
