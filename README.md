@@ -131,6 +131,7 @@ Through comprehensive planning and execution, we have transformed our initial ob
    git checkout kv_storage
    cargo build --release
     ```
+3. If you are running on a Mac machine, consider switching off the firewalls on your machine by going to setting>>Network>>Firewall advanced settings, and switch it off. We oberved that the fire wall can potentially block the multicast, causing the nodes to have trouble finding the peers.
    
 ## Running the Project
 ### Step 1: Start Nodes
@@ -183,24 +184,32 @@ Through comprehensive planning and execution, we have transformed our initial ob
 <!--EndFragment-->
 
 
+## Contributions by each team member
 
-# The work flow with authentication:
-first register the user to get public-private key pair
-register <username>
 
-then get access permission for this user on a file through:
-permission <file_key> <users_public_key>
+**Xiao Hu implemented the following:**
+The authentication functionalities, including the authentication through key pairs, the role based access control, and the digital signature.
+Enforce the authenticity and check for user credentials during uploading and retrieving files.
+The command line interface that supports all the operations our system supports.
 
-then get create a signature through:
-sign <username> <file_key>
 
-then can call get or put through:
-put -f <file_key> <file_path> <users_public_key> <the_signature_of_this_user_on_the_file_key>
-get -f <file_key> <users_public_key> <the_signature_of_this_user_on_the_file_key>
+**Skyler Zhang implemented the following:**
 
-on another node:
-need to get permission for this file_key for another user on this node:
-permission <file_key> <users_public_key_2>
-and then can call sign and get through:
-sign <username_2> <file_key>
-get -f <file_key> <users_public_key_2> <the_signature_of_this_user_on_the_file_key>
+
+## Lessons Learned and Concluding Remarks
+
+
+**Lessons Learned**
+Throughout the development of our distributed file storage system, our team encountered numerous challenges that provided valuable insights and growth opportunities. One of the primary lessons was the importance of effective communication and collaboration. As we worked across different components of the system, clear and consistent communication ensured that both of us were aligned.
+We also learned the significance of thorough planning and flexibility. While we had a comprehensive plan before the implementation, there were several unexpected obstacles that required us to modify our approach. This experience taught us to balance structured planning with the ability to adjust when necessary.
+
+
+Additionally, we gained a deeper understanding of using Rust for building real systems.  We also learned more about distributed system concepts such as scalability, and security. Practical usage of the Rust programming language reinforced our theoretical knowledge and highlighted the technicalities involved in building robust, real-world Rust applications.
+
+
+**Concluding Remarks**
+In conclusion, the development of our distributed file storage system has been a rewarding journey that combined technical aspects with teamwork. We successfully achieved our primary objectives of creating a scalable, highly available, secure, and user-friendly system, demonstrating the potential of decentralized storage solutions in addressing modern data management challenges.
+We are proud of the resulting system we have built and believe that our system offers a viable solution for decentralized file storage. As we move forward, the knowledge and experience gained from this project will serve as a strong foundation for addressing more complex challenges in the field of Rust programming and distributed systems.
+
+
+
