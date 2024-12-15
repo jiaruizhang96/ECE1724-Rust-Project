@@ -103,7 +103,8 @@ While the underlying architecture of our distributed file storage system is comp
    - Clear User Registration and Authentication Process: Registering for the system and authenticating are processes that embeds within the system, without needs for external software. Users can quickly create accounts and log in securely, with clear instructions that guide them through each step. This clarity ensures that users can start using the system without unnecessary complications.
    - Complete Packaging of Distributed File Storage Handling: Although the system operates based on a distributed network, these complexities are hidden from the user completely. Whether a file is being stored across multiple nodes or being retrieved from various locations, the user experiences the same interaction with the system, without awaring the underlying processes that implemented this process.
    - Immediate Feedback on Operations: Users receive real-time feedback on their actions, such as confirmations when a file is successfully uploaded or notifications if an error occurs. This immediate feedback can improve user confidence in the system’s functioning and allows them to understand the outcome of their interactions without waiting.
- 
+
+
 **Technical Implementation For the Features**
 
 Transforming our objectives into a functional distributed file storage system required thoughtful design and technical implementation. Below are some of the key technical achievements for our system.
@@ -118,71 +119,68 @@ In summary, by addressing each of these objectives and implementing the correspo
 Through comprehensive planning and execution, we have transformed our initial objectives into a functional and sophisticated system. This distributed file storage solution exemplifies how careful consideration of design principles and technical implementation can result in a product that meets and exceeds the demands of today's data-driven world.
 
 
-<!--EndFragment-->
-
-<!--EndFragment-->
-
-
-
-
-# Distributed Key-Value Storage System
-
-This project is a distributed key-value storage system written in Rust. It uses the libp2p library for peer-to-peer networking and a distributed hash table (DHT) for storing and retrieving file data.
-
----
-
-## Features
-
-1. **Node Discovery and Peer-to-Peer Networking**
-   - Implements node discovery using the **mDNS protocol**, which automatically discovers peers in the local network and integrates them into the Kademlia Distributed Hash Table (DHT).
-   - The Kademlia DHT enables efficient key-value operations, such as storing and retrieving records, and logs the success or failure of these operations for debugging and monitoring.
-
-2. **File Chunking and Distribution**
-   - Implements file storage by splitting large files into smaller chunks, which are individually stored in the DHT.
-   - Metadata is stored to track the total number of chunks and their sequence. Chunks are retrieved in order, ensuring proper reassembly into the original file.
-
-3. **Data Redundancy for Reliability**
-   - Ensures reliability by maintaining data redundancy through quorum-based storage. Each record is replicated across multiple nodes in the network using a quorum size of `3` to tolerate potential node failures.
-
-4. **Authentication and Access control**
-   - Our system uses ed25519 digital signatures for authentication. Each registed user generates a unique public-private key pair. The UserManager implements access control through an Access Control List (ACL) that maps keys to authorized user public keys, enabling permission at a file level.
----
+## Reproducibility Guide
 
 ## Prerequisites
 
 1. Install [Rust](https://www.rust-lang.org/tools/install). 
-2. Clone this repository:
+2. Clone this repository and checkout the branch kv_storage, all our implementations are in this branch. Afterwards, build the project through cargo build:
    ```bash
    git clone <git@github.com:your_github_username/ECE1724-Rust-Project.git>
    cd <ECE1724-Rust-Project>
    git checkout kv_storage
+   cargo build --release
     ```
+   
 ## Running the Project
 ### Step 1: Start Nodes
-1. Open four or more terminal windows. Each data is stored with three replicas, at least four servers must be running in the distributed system.
+1. Open four or more terminal windows. Each data is stored with three replicas, at least four servers must be running in the distributed system. If you do not run the program in at least four terminals, there will be less than four nodes online, and the uploading and retrieval in step 5 will fail with an error message complaining there are not enough peers in the network.
 2. Run the program in each terminal to start nodes:
    ```bash
-   cargo run --bin kv_storage
+   cargo run
    ```
    Each node will initialize and start listening on a randomly assigned port.
-### Step 2: Store a File
-1. In one of the terminals, run:
+### Step 2: Register the user
+1. To register a user: in one of the terminals, run:
     ```bash
-    PUT -f <unique_file_name> <absolute_path_to_file>
+    register <username>
     ```
-    It is recommended to use a text file, eg. ```<unique_file_name>.txt``` for testing purpose. 
-    Each file stored will use its unique filename when retrieved.
-### Step 3: Retrieve the file
-1. In one of the terminals, run:
+    This will register this user and creates a public-private key pairs for the user. The private key for the user will be stored locally in the directory called /private_keys under the root directory of this project. While the public key will be printed in the commandline for later usages. This design aims to keep the private key secure while using the public keys, which abides to the principles of using key pairs.
+### Step 3: Get access permission for a file
+1. Then, get access permission for this user on a file using the public key generated in step 2 and the key for the file to be uploaded:
     ```bash
-    GET -f <unique_file_name> 
+    permission <file_key> <users_public_key>
     ```
-    The retrieved file will be written to current directory with name ```<unique_file_name>.txt```
-### Step 4: Exiting the Program
+    This will grant access permission for this user on the specific file key. This enforces access control on a granularity of single files as discussed in the features section.
+### Step 4: Create the signature
+1. Then, create a user signature using the username and the key for the file to be uploaded:
+    ```bash
+    sign <username> <file_key>
+    ```
+    This will generate a signature based on the user's private key on this specific file. Digital signatures enforces not only authenticity, but also non-repudiation in that the user cannot deny they have signed this file key. Both the generated signature and the public key of the user will be printed in the terminal, and these two components will be used in the next step for uploading or retrieving the file.
+### Step 5: Store or retrieve the file
+1. Now with the signature generated, we can store or retrieve files.
+   It is recommended to use a text file, eg. ```<unique_file_name>.txt``` for testing purpose. 
+   For storing. In one of the terminals, run:
+    ```bash
+    put -f <file_key> <absolute_path_to_file> <users_public_key> <the_signature_of_this_user_on_this_file_key>
+    ```
+   For retrieving. In one of the terminals, run:
+    ```bash
+    get -f <file_key> <users_public_key> <the_signature_of_this_user_on_this_file_key>
+    ```
+    The retrieved file will be written to current directory with name ```<file_key>.txt```
+
+   Note that for retrieving this same file on a different node, you need to register another user on that node and go through steps 1-4 with this same file key and that newly registered user's name and generated public key. We decided to not propagate the user credentails from the node that registers the user to other peer nodes to enforce a distributed storage of meta data.
+### Step 6: Exiting the program on one node
 1. To gracefully exit the program, run:
     ```bash
-    EXIT
+    exit
     ```
+    in the terminal for the node you want to exit.
+<!--EndFragment-->
+
+<!--EndFragment-->
 
 
 
