@@ -1,7 +1,7 @@
 <!--StartFragment-->
 ## Distributed File Storage System in Rust
 
-Skyler Zhang - 1004715953 -  Xiao Hu - 1005684207 - hx.hu@mail.utoronto.ca
+Skyler Zhang - 1004715953 - skyler.zhang@mail.utoronto.ca -  Xiao Hu - 1005684207 - hx.hu@mail.utoronto.ca
 <!--StartFragment-->
 
 ### **Motivation and Project Background**<a id="h.17u30qpcljpx"></a>
