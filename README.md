@@ -8,30 +8,25 @@ Skyler Zhang - 1004715953 -  Xiao Hu - 1005684207 - hx.hu@mail.utoronto.ca
 
 **Distributed File Storage Systems: Context and Challenges**
 
-In the contemporary technological world, data storage and management have become increasingly complex, demanding solutions that can handle massive amounts of information with reliability, scalability, and performance. Distributed file storage systems is a critical technological approach to these challenges, allowing for organizations and services to manage data across multiple connected nodes efficiently.
+In the contemporary technological world, data storage and management have become increasingly complex, demanding problems. Distributed file storage systems is a critical technological approach to these challenges, allowing for organizations and services to manage data across multiple connected nodes efficiently.
 
 The motivation for developing a distributed file storage system stems from real-world industry experiences that demonstrated the importance of robust, scalable, and performant data management infrastructure. Companies like Amazon and Google have demonstrated that the performance of distributed systems directly impacts user experience and, consequently, business outcomes. For instance, Amazon's research showed that even a 100-millisecond delay in page load time could potentially reduce sales by 1%, while Google discovered that a 0.5-second lag in search results could lead to a 20% drop in user traffic.
 
-These findings illustrate the importance of designing distributed systems that prioritize four fundamental characteristics: scalability, availability, safety and low latency. Modern storage services require infrastructure that can expand to accommodate growing data demands, maintain continuous operation even when individual nodes fail, and provide rapid access to data.
+These findings illustrate the importance of designing distributed systems that prioritize four fundamental characteristics: scalability, availability, safety and low latency. Modern storage services require infrastructure that can expand to accommodate growing data demands, maintain operations even when individual nodes fail, and provide rapid access to data.
 
 **Technological Landscape**
 
-Traditional centralized storage systems face significant limitations in meeting these requirements. As data volumes grow exponentially and user expectations for rapid access increase, centralized architectures become the bottlenecks. Centralized systems create single points of failure, are challenging to scale horizontally, and often fail to maintain consistent performance under increased load.
-Distributed file storage systems emerge as a handy solution to these challenges. By distributing data and computational overheads across multiple nodes, these systems can:
-   - Achieve horizontal scalability
-   - Improve overall system resilience
-   - Provide more consistent performance with increased load
+Traditional centralized storage systems face challenges in meeting growing data demands, often becoming bottlenecks due to single points of failure, limited scalability, and inconsistent performance under heavy loads. In contrast, decentralized systems are preferred for their enhanced reliability, as the failure of individual nodes does not disrupt overall functionality. These systems also support horizontal scaling and maintain consistent performance even under heavy workloads.
 
 However, implementing such systems is non-trivial. Developers must address complex technical challenges, including:
-   - Efficient data distribution and partitioning
    - Maintaining data consistency across nodes
-   - Ensuring secure and controlled data access
+   - Efficient data routing 
    - Managing network communication and node discovery
-   - Handling concurrent read and write operations
+   - Security and authentication
 
 **Rust as a Strategic Language Choice**
 
-The selection of Rust as the implementation language for this distributed file storage system was strategic. Rust offers unique characteristics that fits perfectly with the requirements of distributed systems development:
+To build a reliable distributed system, Rust is an ideal language due to its focus on predictable performance, memory safety, and concurrency management.
 
 **Performance**
 
@@ -63,9 +58,9 @@ Scalability refers to the system's ability to handle growth, in the number of us
 
 **Key Features for Scalability:**
 
-   - Decentralized Node Discovery Using Kademlia Distributed Hash Table (DHT): To ensure that our system can efficiently locate and communicate with any node within the network, we implemented the Kademlia DHT. This decentralized approach eliminates the need for a central directory, which allows nodes to find each other based on a structured but flexible hashing mechanism. This not only speeds up the discovery process but also improves the system's ability to scale when more nodes join the network.
+   - Decentralized Node Discovery Using Kademlia Distributed Hash Table (DHT): To ensure that our system can efficiently locate and communicate with any node within the network, we implement the mDNS node discovery and the Kademlia DHT for node addition and removal. This decentralized approach eliminates the need for a central directory, which allows nodes to find each other based on a structured but flexible hashing mechanism. This not only speeds up the discovery process but also improves the system's ability to scale when more nodes join the network.
    - Dynamic Node Adding and Removal: One of the challenges in distributed systems is managing the dynamic nature of node participation. Our system allows nodes to join or leave the network without requiring a central authority to manage these changes. This mechanism ensures that the system remains adaptable, making it capable of adjusting to node availability without disrupting overall operations.
-   - Efficient Resource Sharing Across Nodes: Scalability is not just about adding more nodes. It's also about making the best use of current resources. Our system splits file data into chunks to facilitate efficient sharing of storage space, processing power, and bandwidth across all nodes. This approach maximizes the system's overall capacity and ensures that resources are utilized effectively, even when the network grows.
+   - Efficient Resource Sharing Across Nodes: Scalability is not just about adding more nodes. It's also about making the best use of current resources. Our system splits file data into chunks to facilitate efficient sharing of storage space. This approach maximizes the system's overall capacity and ensures that resources are utilized effectively, even when the network grows.
 
 
 **Objective2, Availability: Ensuring Continuous Operation and Data Accessibility**
@@ -130,14 +125,13 @@ In summary, by addressing each of these objectives and implementing the correspo
 ## Prerequisites
 
 1. Install [Rust](https://www.rust-lang.org/tools/install). 
-2. Clone this repository and checkout the branch kv_storage, all our implementations are in this branch. Afterwards, build the project through cargo build:
+2. Clone this repository, replace it with your github username. Then build the project via cargo build:
    ```bash
    git clone <git@github.com:your_github_username/ECE1724-Rust-Project.git>
    cd <ECE1724-Rust-Project>
-   git checkout kv_storage
    cargo build --release
     ```
-3. If you are running on a Mac machine, consider switching off the firewalls on your machine by going to setting>>Network>>Firewall advanced settings, and switch it off. We oberved that the fire wall can potentially block the multicast, causing the nodes to have trouble finding the peers.
+3. IMPORTANT: If you are running on a Mac machine, consider switching off the firewalls on your machine by going to setting>>Network>>Firewall advanced settings, and switch it off. We oberved that the fire wall can potentially block the mDNS multicast, causing the nodes to have trouble finding the peers.
    
 ## Running the Project
 ### Step 1: Start Nodes
@@ -152,7 +146,7 @@ In summary, by addressing each of these objectives and implementing the correspo
     ```bash
     register <username>
     ```
-    This will register this user and creates a public-private key pairs for the user. The private key for the user will be stored locally in the directory called /private_keys under the root directory of this project. While the public key will be printed in the commandline for later usages. This design aims to keep the private key secure while using the public keys, which abides to the principles of using key pairs.
+    This will register this user and creates a public-private key pairs for the user. The private key will be stored locally in the directory called /private_keys under the root directory of this project. The public key will be printed in the commandline for later usages. We will refer to them as ``` <users_public_key>```. This design aims to keep the private key secure while using the public keys, which abides to the principles of using key pairs.
 ### Step 3: Get access permission for a file
 1. Then, get access permission for this user on a file using the public key generated in step 2 and the key for the file to be uploaded:
     ```bash
@@ -164,7 +158,7 @@ In summary, by addressing each of these objectives and implementing the correspo
     ```bash
     sign <username> <file_key>
     ```
-    This will generate a signature based on the user's private key on this specific file. Digital signatures enforces not only authenticity, but also non-repudiation in that the user cannot deny they have signed this file key. Both the generated signature and the public key of the user will be printed in the terminal, and these two components will be used in the next step for uploading or retrieving the file.
+    This will generate a signature based on the user's private key on this specific file. We will refer to this as ``` <the_signature_of_this_user_on_this_file_key>```. The <users_public_key> will also be used in the next step for reading and writing file. Digital signatures enforces not only authenticity, but also non-repudiation in that the user cannot deny they have signed this file key. 
 ### Step 5: Store or retrieve the file
 1. Now with the signature generated, we can store or retrieve files.
    It is recommended to use a text file, eg. ```<unique_file_name>.txt``` for testing purpose. 
@@ -178,7 +172,7 @@ In summary, by addressing each of these objectives and implementing the correspo
     ```
     The retrieved file will be written to current directory with name ```<file_key>.txt```
 
-   Note that for retrieving this same file on a different node, you need to register another user on that node and go through steps 1-4 with this same file key and that newly registered user's name and generated public key. We decided to not propagate the user credentails from the node that registers the user to other peer nodes to enforce a distributed storage of meta data.
+   Note that for retrieving this same file on a different node, you need to register another user on that node and go through steps 1-4 with this same file key and that newly registered user's name and generated public key. Our demo shows the detailed steps. We decided to not propagate the user credentails from the node that registers the user to other peer nodes to enforce a distributed storage of meta data.
 ### Step 6: Exiting the program on one node
 1. To gracefully exit the program, run:
     ```bash
@@ -203,6 +197,7 @@ The command line interface that supports all the operations our system supports.
 
 **Skyler Zhang implemented the following:**
 
+The server initialization and communication through libp2p. The peer to peer networking with libp2p, kademlia DHT and mDNS discovery. Split the files into chunks and store them in Kademlia DHT and reallocate them sequentially by reading the metadata. Data replicated storage with Kademlia DHT. 
 
 ## Lessons Learned and Concluding Remarks
 
@@ -211,10 +206,14 @@ The command line interface that supports all the operations our system supports.
 
 
 Throughout the development of our distributed file storage system, our team encountered numerous challenges that provided valuable insights and growth opportunities. One of the primary lessons was the importance of effective communication and collaboration. As we worked across different components of the system, clear and consistent communication ensured that both of us were aligned.
-We also learned the significance of thorough planning and flexibility. While we had a comprehensive plan before the implementation, there were several unexpected obstacles that required us to modify our approach. This experience taught us to balance structured planning with the ability to adjust when necessary.
+
+We also came to appreciate the value of thorough planning and adaptability. Despite having a detailed plan, implementing the peer-to-peer networking and authentication functionalities proved to be a time-intensive task, taking us several weeks to complete. Fortunately, our proactive planning allowed us to stay on track and make necessary adjustments without running out of time.
 
 
-Additionally, we gained a deeper understanding of using Rust for building real systems.  We also learned more about distributed system concepts such as scalability, and security. Practical usage of the Rust programming language reinforced our theoretical knowledge and highlighted the technicalities involved in building robust, real-world Rust applications.
+Additionally, we developed a deeper understanding of using Rust to build robust systems. Rust's ownership model enabled us to eliminate an entire class of security vulnerabilities that often arise from memory mismanagement in other programming languages.
+
+
+We also learned more about distributed system concepts such as scalability, and security. Practical usage of the Rust programming language reinforced our theoretical knowledge and highlighted the technicalities involved in building robust, real-world Rust applications.
 
 
 **Concluding Remarks**
