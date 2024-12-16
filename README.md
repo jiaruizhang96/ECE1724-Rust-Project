@@ -223,4 +223,4 @@ We are proud of the resulting system we have built and believe that our system o
 
 # Video Demo
 
-This [links](https://drive.google.com/file/d/15E6k01jH_3Xuik1P-QStFL8CFVFmKfEq/view?usp=drive_link) to our demo video stored on Google Drive. 
+This [links](https://drive.google.com/file/d/15E6k01jH_3Xuik1P-QStFL8CFVFmKfEq/view?usp=drive_link) to our demo video stored on Google Drive. Please download the video to watch if it can't be played on Google Drive. 
