@@ -108,11 +108,17 @@ impl NetworkBehaviourEventProcess<KademliaEvent> for Behaviour {
                             let file_path = std::env::current_dir()
                                 .expect("Failed to get current directory")
                                 .join(format!("{}.txt", file_key));
-                            match std::fs::OpenOptions::new()
-                                .create(true)
-                                .append(true)
-                                .open(&file_path)
-                            {
+
+                            let mut open_options = std::fs::OpenOptions::new();
+                            if current_chunk_number == 0 {
+                                // Overwrite the file if it's the first chunk
+                                open_options.create(true).write(true).truncate(true);
+                            } else {
+                                // Append to the file for other chunks
+                                open_options.create(true).append(true);
+                            }
+
+                            match open_options.open(&file_path) {
                                 Ok(mut file) => {
                                     if let Err(e) = file.write_all(&value) {
                                         eprintln!(
@@ -128,7 +134,6 @@ impl NetworkBehaviourEventProcess<KademliaEvent> for Behaviour {
                                 }
                                 Err(e) => {
                                     eprintln!("Failed to open file '{}': {:?}", file_path.display(), e);
-                                    continue;
                                 }
                             }
 
