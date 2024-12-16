@@ -123,10 +123,10 @@ In summary, by addressing each of these objectives and implementing the correspo
 ## Prerequisites
 
 1. Install [Rust](https://www.rust-lang.org/tools/install). 
-2. Clone this repository, replace it with your github username. Then build the project via cargo build:
+2. Clone this repository. Then build the project via cargo build:
    ```bash
-   git clone <git@github.com:your_github_username/ECE1724-Rust-Project.git>
-   cd <ECE1724-Rust-Project>
+   git clone git@github.com:jiaruizhang96/ECE1724-Rust-Project.git
+   cd ECE1724-Rust-Project
    cargo build --release
     ```
 3. IMPORTANT: If you are running on a Mac machine, consider switching off the firewalls on your machine by going to setting>>Network>>Firewall advanced settings, and switch it off. We oberved that the fire wall can potentially block the mDNS multicast, causing the nodes to have trouble finding the peers.
