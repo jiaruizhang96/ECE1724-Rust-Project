@@ -164,11 +164,14 @@ impl Node {
                 publisher: None,
                 expires: None,
             };
+            
+            let quorum = Quorum::N(NonZeroUsize::new(3).expect("Quorum value must be non-zero"));
+
 
             self.swarm
                 .behaviour_mut()
                 .kademlia
-                .put_record(record, libp2p::kad::Quorum::One)
+                .put_record(record, quorum)
                 .expect("Failed to store record");
             println!(
                 "Stored chunk {} of {} for file '{}' under key '{}'.",
@@ -190,11 +193,12 @@ impl Node {
             publisher: None,
             expires: None,
         };
+        let quorum = Quorum::N(NonZeroUsize::new(3).expect("Quorum value must be non-zero"));
 
         self.swarm
             .behaviour_mut()
             .kademlia
-            .put_record(record, libp2p::kad::Quorum::One)
+            .put_record(record, quorum)
             .expect("Failed to store total chunks metadata");
 
         println!(

@@ -12,7 +12,7 @@ In the contemporary technological world, data storage and management have become
 
 The motivation for developing a distributed file storage system stems from real-world industry experiences that demonstrated the importance of robust, scalable, and performant data management infrastructure. Companies like Amazon and Google have demonstrated that the performance of distributed systems directly impacts user experience and, consequently, business outcomes. For instance, Amazon's research showed that even a 100-millisecond delay in page load time could potentially reduce sales by 1%, while Google discovered that a 0.5-second lag in search results could lead to a 20% drop in user traffic.
 
-These findings illustrate the importance of designing distributed systems that prioritize three fundamental characteristics: scalability, availability, and low latency. Modern storage services require infrastructure that can expand to accommodate growing data demands, maintain continuous operation even when individual nodes fail, and provide rapid access to data.
+These findings illustrate the importance of designing distributed systems that prioritize four fundamental characteristics: scalability, availability, safety and low latency. Modern storage services require infrastructure that can expand to accommodate growing data demands, maintain continuous operation even when individual nodes fail, and provide rapid access to data.
 
 **Technological Landscape**
 
@@ -65,8 +65,7 @@ Scalability refers to the system's ability to handle growth, in the number of us
 
    - Decentralized Node Discovery Using Kademlia Distributed Hash Table (DHT): To ensure that our system can efficiently locate and communicate with any node within the network, we implemented the Kademlia DHT. This decentralized approach eliminates the need for a central directory, which allows nodes to find each other based on a structured but flexible hashing mechanism. This not only speeds up the discovery process but also improves the system's ability to scale when more nodes join the network.
    - Dynamic Node Adding and Removal: One of the challenges in distributed systems is managing the dynamic nature of node participation. Our system allows nodes to join or leave the network without requiring a central authority to manage these changes. This mechanism ensures that the system remains adaptable, making it capable of adjusting to node availability without disrupting overall operations.
-   - Minimal Overhead: As nodes add in and leave, the network needs to reorganize itself to maintain functionality. We've designed our system to handle these reconfigurations with minimal overhead, ensuring that the process is efficient and does not significantly impact the system's responsiveness or data access speeds.
-   - Efficient Resource Sharing Across Nodes: Scalability is not just about adding more nodes. It's also about making the best use of current resources. Our system facilitates efficient sharing of storage space, processing power, and bandwidth across all nodes. This approach maximizes the system's overall capacity and ensures that resources are utilized effectively, even when the network grows.
+   - Efficient Resource Sharing Across Nodes: Scalability is not just about adding more nodes. It's also about making the best use of current resources. Our system splits file data into chunks to facilitate efficient sharing of storage space, processing power, and bandwidth across all nodes. This approach maximizes the system's overall capacity and ensures that resources are utilized effectively, even when the network grows.
 
 
 **Objective2, Availability: Ensuring Continuous Operation and Data Accessibility**
@@ -75,7 +74,7 @@ For a distributed system, high availability is crucial. It means that the system
 
 **Key features for Availability:**
 
-   - Distributed Data Replication: To prevent data loss and ensure accessibility, our system replicates data across multiple nodes. By maintaining several copies of each file, the system can quickly retrieve data from a different node if the primary storage location fails. This redundancy is key to maintaining continuous access to files, regardless of individual node failures.
+   - Distributed Data Replication: To prevent data loss and ensure accessibility, our system replicates data across three nodes. By maintaining several copies of each file, the system can quickly retrieve data from a different node if the primary storage location fails. This redundancy is key to maintaining continuous access to files, regardless of individual node failures.
    - Automatic Data Redistribution When Node Fails: When a node fails or becomes unreachable, the system automatically redistributes its data to other active nodes. This process ensures that data remains available even during unexpected node failure, maintaining the system's overall reliability and user trust.
    - Health Monitoring and Node Failure Detection: Continuous health monitoring is essential for identifying and responding to node failures promptly. Our system includes mechanisms to check the status of each node, detecting failures quickly and triggering the data redistribution to maintain availability.
 
