@@ -130,6 +130,7 @@ In summary, by addressing each of these objectives and implementing the correspo
    cargo build --release
     ```
 3. IMPORTANT: If you are running on a Mac machine, consider switching off the firewalls on your machine by going to setting>>Network>>Firewall advanced settings, and switch it off. We oberved that the fire wall can potentially block the mDNS multicast, causing the nodes to have trouble finding the peers.
+4. Create a directory called private_keys in the root directory of this project to store the private keys of the users for authentication.
    
 ## Running the Project
 ### Step 1: Start Nodes
